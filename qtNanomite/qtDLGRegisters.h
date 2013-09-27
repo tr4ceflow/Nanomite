@@ -57,6 +57,8 @@ private slots:
 	void OnContextMenu(QPoint);
 	void OnChangeRequest(QTableWidgetItem *pItem);
 	void MenuCallback(QAction* pAction);
+
+	void slot_changeRegisterValue(QTableWidgetItem *item);
 };
 
 #endif // QTDLGREGISTERS_H

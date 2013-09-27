@@ -27,6 +27,8 @@
 #include <cmath>
 #include <limits>
 
+//#include <string.h>
+
 qtDLGRegisters::qtDLGRegisters(QWidget *parent)
 	: QDockWidget(parent)
 {
@@ -59,6 +61,13 @@ qtDLGRegisters::qtDLGRegisters(QWidget *parent)
 
 	connect(tblRegView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(OnContextMenu(QPoint)));
 	connect(tblRegView,SIGNAL(itemDoubleClicked(QTableWidgetItem *)),this,SLOT(OnChangeRequest(QTableWidgetItem *)));
+
+	connect(tblFPU,	SIGNAL(itemChanged(QTableWidgetItem *)),
+			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
+	connect(tblMMX,	SIGNAL(itemChanged(QTableWidgetItem *)),
+			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
+	connect(tblSSE,	SIGNAL(itemChanged(QTableWidgetItem *)),
+			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
 }
 
 qtDLGRegisters::~qtDLGRegisters()
@@ -194,7 +203,7 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 						
 		for (int i = 0; i < 8; i++) {
 			double value = readFloat80(&coreDebugger->wowProcessContext.FloatSave.RegisterArea[i * 10]);
-			PrintValueInTable(tblFPU,QString("ST(%1)").arg(i), QString("%1").arg(value));
+			PrintValueInTable(tblFPU, QString("ST(%1)").arg(i), QString("%1").arg(value));
 		}
 		
 		if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE) == true) {
@@ -203,7 +212,7 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 			DWORD64* pMMX;
 			for (int i = 0; i < 8; i++) {
 				pMMX = (DWORD64*)&coreDebugger->wowProcessContext.FloatSave.RegisterArea[i * 10];
-				PrintValueInTable(tblMMX,QString("MMX%1").arg(i), QString("%1").arg(*pMMX, 16, 16, QChar('0')));
+				PrintValueInTable(tblMMX, QString("MMX%1").arg(i), QString("%1").arg(*pMMX, 16, 16, QChar('0')));
 			}
 		}
 		else
@@ -217,7 +226,7 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 				pXMM = (uint128_t*)&coreDebugger->wowProcessContext.ExtendedRegisters[(10 + i) * 16];
 				PrintValueInTable(	tblSSE,
 									QString("XMM%1").arg(i), 
-									QString("%1 %2").arg((*pXMM).low, 16, 16, QChar('0')).arg((*pXMM).high, 16, 16, QChar('0')));
+									QString("%1%2").arg((*pXMM).high, 16, 16, QChar('0')).arg((*pXMM).low, 16, 16, QChar('0')));
 			}		
 		}
 		else
@@ -257,8 +266,8 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 		for (int i = 0; i < 8; i++) {
 			PrintValueInTable(	tblFPU,
 								QString("ST(%1)").arg(i),
-								QString("%1 %2").arg(coreDebugger->ProcessContext.FltSave.FloatRegisters[i].Low, 16, 16,QChar('0'))
-												.arg(coreDebugger->ProcessContext.FltSave.FloatRegisters[i].High, 16, 16, QChar('0')));
+								QString("%1%2").arg(coreDebugger->ProcessContext.FltSave.FloatRegisters[i].Low, 16, 16, QChar('0'))
+											   .arg(coreDebugger->ProcessContext.FltSave.FloatRegisters[i].High, 16, 16, QChar('0')));
 		}
 
 		if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE) == true) {
@@ -279,8 +288,8 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 			for(int i = 0; i < 16; i++) {
 				PrintValueInTable(	tblSSE,
 									QString("XMM%1").arg(i), 
-									QString("%1 %2").arg(coreDebugger->ProcessContext.FltSave.XmmRegisters[i].Low, 16, 16,QChar('0'))
-													.arg(coreDebugger->ProcessContext.FltSave.XmmRegisters[i].High, 16, 16, QChar('0')));
+									QString("%1%2").arg(coreDebugger->ProcessContext.FltSave.XmmRegisters[i].High, 16, 16,QChar('0'))
+													.arg(coreDebugger->ProcessContext.FltSave.XmmRegisters[i].Low, 16, 16, QChar('0')));
 			}
 		}
 		else
@@ -310,7 +319,7 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 
 	for (int i = 0; i < 8; i++) {
 		double value = readFloat80(&coreDebugger->ProcessContext.FloatSave.RegisterArea[i * 10]);
-		PrintValueInTable(tblFPU,QString("ST(%1)").arg(i), QString("%1").arg(value));	
+		PrintValueInTable(tblFPU, QString("ST(%1)").arg(i), QString("%1").arg(value));	
 	}
 
 	if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE) == true) {
@@ -319,7 +328,7 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 		DWORD64* pMMX;
 		for (int i = 0; i < 8; i++) {
 			pMMX = (DWORD64*)&coreDebugger->ProcessContext.FloatSave.RegisterArea[i * 10];
-			PrintValueInTable(tblMMX,QString("MMX%1").arg(i),QString("%1").arg(*pMMX, 16, 16, QChar('0')));
+			PrintValueInTable(tblMMX, QString("MMX%1").arg(i),QString("%1").arg(*pMMX, 16, 16, QChar('0')));
 		}
 	}
 	else
@@ -331,8 +340,8 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 		uint128_t *pXMM;
 		for (int i = 0; i < 8; i++) {
 			pXMM = (uint128_t*)&coreDebugger->ProcessContext.ExtendedRegisters[(10 + i) * 16];
-			PrintValueInTable(tblSSE,QString("XMM%1").arg(i), QString("%1 %2").arg((*pXMM).low, 16, 16, QChar('0')).arg((*pXMM).high, 16, 16, QChar('0')));
-		}		
+			PrintValueInTable(tblSSE, QString("XMM%1").arg(i), QString("%1%2").arg((*pXMM).high, 16, 16, QChar('0')).arg((*pXMM).low, 16, 16, QChar('0')));
+		}
 	}
 	else
 		tabWidget->removeTab(3);
@@ -423,4 +432,101 @@ double qtDLGRegisters::readFloat80(const uint8_t buffer[10])
     //value = (-1)^s * (m / 2^63) * 2^(e - 16383)
     double significand = ((double)mantissa / ((uint64_t)1 << 63));
     return sign * ldexp(significand, exponent - EXP_BIAS);
+}
+
+void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
+{
+	QString regVal = item->data(Qt::DisplayRole).toString();
+
+
+#ifdef _AMD64_
+	BOOL bIsWOW64 = false;
+
+	if(clsAPIImport::pIsWow64Process)
+		clsAPIImport::pIsWow64Process(qtDLGNanomite::GetInstance()->coreDebugger->GetCurrentProcessHandle(), &bIsWOW64);
+
+	if(bIsWOW64)
+	{	/*
+		for (int i = 0; i < 8; i++) {
+			double value = readFloat80(&coreDebugger->wowProcessContext.FloatSave.RegisterArea[i * 10]);
+			PrintValueInTable(tblFPU, QString("ST(%1)").arg(i), QString("%1").arg(value));
+		}
+		*/
+		
+		if (sender() == tblMMX) {
+			DWORD64 value = regVal.toULongLong(0, 16);
+			memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->wowProcessContext.FloatSave.RegisterArea[item->row() * 10], 
+					&value, 
+					sizeof(value));		
+		}
+
+		if (sender() == tblSSE) {
+			uint128_t value;
+			value.low = regVal.mid(16, 31).toULongLong(0, 16);
+			value.high =regVal.mid(0 , 15).toLongLong(0, 16);
+
+			memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->wowProcessContext.ExtendedRegisters[(item->row() + 10) * 16], 
+					&value, 
+					sizeof(value));
+		}
+	}
+	else {	
+		if (sender() == tblFPU) {
+			LONGLONG low = regVal.mid(16, 31).toLongLong(0, 16);
+			ULONGLONG high = regVal.mid(0, 15).toULongLong(0, 16);
+
+			memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FltSave.FloatRegisters[item->row()].Low,
+					&low,
+					sizeof(low));
+			memcpy( &qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FltSave.FloatRegisters[item->row()].High,
+					&high,
+					sizeof(high));
+		}
+
+		if (sender() == tblMMX) {
+			ULONGLONG low = regVal.toULongLong(0, 16);
+
+			memcpy( &qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FltSave.FloatRegisters[item->row()].Low,
+					&low,
+					sizeof(low));
+		}
+
+		if (sender() == tblSSE) {
+			LONGLONG low = regVal.mid(16, 31).toLongLong(0, 16);
+			ULONGLONG high = regVal.mid(0, 15).toULongLong(0, 16);
+
+			memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FltSave.XmmRegisters[item->row()].Low,
+					&low,
+					sizeof(low));
+			memcpy( &qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FltSave.XmmRegisters[item->row()].High,
+					&high,
+					sizeof(high));
+		}
+	}
+#else
+	// just for x32...	
+	//if (sender() == tblFPU) {
+	//	double value = regVal.toDouble();
+	//	memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FloatSave.RegisterArea[item->row() * 10], 
+	//			&value, 
+	//			sizeof(value));
+	//}
+
+	if (sender() == tblMMX) {
+		DWORD64 value = regVal.toULongLong(0, 16);
+		memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FloatSave.RegisterArea[item->row() * 10], 
+				&value, 
+				sizeof(value));		
+	}
+
+	if (sender() == tblSSE) {
+		uint128_t value;
+		value.low = regVal.mid(16, 31).toULongLong(0, 16);
+		value.high =regVal.mid(0 , 15).toLongLong(0, 16);
+
+		memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.ExtendedRegisters[(item->row() + 10) * 16], 
+				&value, 
+				sizeof(value));
+	}
+#endif
 }
