@@ -62,6 +62,13 @@ qtDLGRegisters::qtDLGRegisters(QWidget *parent)
 	connect(tblRegView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(OnContextMenu(QPoint)));
 	connect(tblRegView,SIGNAL(itemDoubleClicked(QTableWidgetItem *)),this,SLOT(OnChangeRequest(QTableWidgetItem *)));
 
+	connect(tblFPU, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
+			this,	SLOT(OnChangeRequest(QTableWidgetItem *)));
+	connect(tblMMX, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
+			this,	SLOT(OnChangeRequest(QTableWidgetItem *)));
+	connect(tblSSE, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
+			this,	SLOT(OnChangeRequest(QTableWidgetItem *)));
+
 	connect(tblFPU,	SIGNAL(itemChanged(QTableWidgetItem *)),
 			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
 	connect(tblMMX,	SIGNAL(itemChanged(QTableWidgetItem *)),
@@ -135,6 +142,14 @@ void qtDLGRegisters::MenuCallback(QAction* pAction)
 
 void qtDLGRegisters::OnChangeRequest(QTableWidgetItem *pItem)
 {
+	if ((sender() == tblFPU) || 
+		(sender() == tblMMX) || 
+		(sender() == tblSSE)) 
+	{
+		m_savedValue = pItem->data(Qt::DisplayRole).toString();
+		return;
+	}
+
 	qtDLGNanomite *pMainWindow = qtDLGNanomite::GetInstance();
 
 	if(!pMainWindow->coreDebugger->GetDebuggingState())
@@ -438,7 +453,11 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 {
 	QString regVal = item->data(Qt::DisplayRole).toString();
 
-
+	if (!checkCorrectnessValue(regVal)) {
+		item->setData(Qt::DisplayRole, m_savedValue);
+		return;
+	}
+	
 #ifdef _AMD64_
 	BOOL bIsWOW64 = false;
 
@@ -450,6 +469,14 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 		for (int i = 0; i < 8; i++) {
 			double value = readFloat80(&coreDebugger->wowProcessContext.FloatSave.RegisterArea[i * 10]);
 			PrintValueInTable(tblFPU, QString("ST(%1)").arg(i), QString("%1").arg(value));
+		}
+		*/
+		/*
+		if (sender() == tblFPU) {
+			double value = regVal.toDouble();
+			memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->wowProcessContext.FloatSave.RegisterArea[item->row() * 10], 
+					&value, 
+					sizeof(value));
 		}
 		*/
 		
@@ -529,4 +556,49 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 				sizeof(value));
 	}
 #endif
+}
+
+bool qtDLGRegisters::checkCorrectnessValue(const QString &regVal)
+{
+	// /^[a-f0-9]{1,}$/ - regular value for register value 
+	//if (regVal.contains(QRegExp("/^[A-Fa-f0-9]{1,}$/"))) {
+	//	return false;
+	//}
+
+	BOOL needCheckFPU = true;
+	BOOL bIsWOW64 = false;
+
+	if(clsAPIImport::pIsWow64Process)
+		clsAPIImport::pIsWow64Process(qtDLGNanomite::GetInstance()->coreDebugger->GetCurrentProcessHandle(), &bIsWOW64);
+
+	if(!bIsWOW64)
+	{	
+		if (sender() == tblFPU) {
+			needCheckFPU = false;
+			if (regVal.size() > 32) {
+				return false;
+			}
+		}
+	}
+
+	if (needCheckFPU) {
+		if (sender() == tblFPU) {
+			// need check size and etc, for case when this is x32 or wow64 arch...
+			return false;
+		}
+	}
+
+	if (sender() == tblMMX) {
+		if (regVal.size() > 16) {
+			return false;
+		}
+	}
+
+	if (sender() == tblSSE) {
+		if (regVal.size() > 32) {
+			return false;
+		}
+	}
+	
+	return true;
 }

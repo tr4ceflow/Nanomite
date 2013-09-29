@@ -41,6 +41,14 @@ public slots:
 signals:
 	void OnDisplayDisassembly(quint64 dwEIP);
 
+
+private:
+	void PrintValueInTable(QTableWidget *pTable, QString regName, QString regValue);
+
+	double readFloat80(const uint8_t buffer[10]);
+
+	bool checkCorrectnessValue(const QString &regVal);
+
 private:
 	typedef struct {
 		DWORD64 low;
@@ -49,9 +57,7 @@ private:
 
 	int m_iSelectedRow;
 
-	void PrintValueInTable(QTableWidget *pTable, QString regName, QString regValue);
-
-	double readFloat80(const uint8_t buffer[10]);
+	QString m_savedValue;
 
 private slots:
 	void OnContextMenu(QPoint);
