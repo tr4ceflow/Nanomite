@@ -451,6 +451,10 @@ double qtDLGRegisters::readFloat80(const uint8_t buffer[10])
 
 void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 {
+	if (item->column() == 0) {
+		return;
+	}
+
 	QString regVal = item->data(Qt::DisplayRole).toString();
 
 	if (!checkCorrectnessValue(regVal)) {
@@ -560,10 +564,9 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 
 bool qtDLGRegisters::checkCorrectnessValue(const QString &regVal)
 {
-	// /^[a-f0-9]{1,}$/ - regular value for register value 
-	//if (regVal.contains(QRegExp("/^[A-Fa-f0-9]{1,}$/"))) {
-	//	return false;
-	//}
+	if (regVal.contains(QRegExp("[^0-9a-fA-F]+"))) {
+		return false;
+	}
 
 	BOOL needCheckFPU = true;
 	BOOL bIsWOW64 = false;
