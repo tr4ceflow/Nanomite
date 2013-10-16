@@ -62,6 +62,7 @@ qtDLGRegisters::qtDLGRegisters(QWidget *parent)
 	connect(tblRegView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(OnContextMenu(QPoint)));
 	connect(tblRegView,SIGNAL(itemDoubleClicked(QTableWidgetItem *)),this,SLOT(OnChangeRequest(QTableWidgetItem *)));
 
+
 	connect(tblFPU, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
 			this,	SLOT(OnChangeRequest(QTableWidgetItem *)));
 	connect(tblMMX, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
@@ -75,6 +76,7 @@ qtDLGRegisters::qtDLGRegisters(QWidget *parent)
 			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
 	connect(tblSSE,	SIGNAL(itemChanged(QTableWidgetItem *)),
 			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
+
 }
 
 qtDLGRegisters::~qtDLGRegisters()
@@ -404,7 +406,7 @@ void qtDLGRegisters::PrintValueInTable(QTableWidget *pTable, QString regName, QS
 // FIXME: maybe rewrite this function
 double qtDLGRegisters::readFloat80(const uint8_t buffer[10]) 
 {
-	 //80 bit floating point value according to IEEE-754:
+    //80 bit floating point value according to IEEE-754:
     //1 bit sign, 15 bit exponent, 64 bit mantissa
 
     const uint16_t SIGNBIT    = 1 << 15;
@@ -475,14 +477,19 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 			PrintValueInTable(tblFPU, QString("ST(%1)").arg(i), QString("%1").arg(value));
 		}
 		*/
-		/*
+		
 		if (sender() == tblFPU) {
+			/*
+			Binary80 binary = toExtendedPrecision(regVal);
+			int gg;
+			
 			double value = regVal.toDouble();
 			memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->wowProcessContext.FloatSave.RegisterArea[item->row() * 10], 
 					&value, 
 					sizeof(value));
+			*/
 		}
-		*/
+		
 		
 		if (sender() == tblMMX) {
 			DWORD64 value = regVal.toULongLong(0, 16);
@@ -536,12 +543,17 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 	}
 #else
 	// just for x32...	
-	//if (sender() == tblFPU) {
+	if (sender() == tblFPU) {
+		/*
+		Binary80 *binary = toExtendedPrecision(regVal);
+		
 	//	double value = regVal.toDouble();
-	//	memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FloatSave.RegisterArea[item->row() * 10], 
-	//			&value, 
-	//			sizeof(value));
-	//}
+		memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FloatSave.RegisterArea[item->row() * 10], 
+				binary, 
+				10);
+		delete binary;
+		*/
+	}
 
 	if (sender() == tblMMX) {
 		DWORD64 value = regVal.toULongLong(0, 16);
@@ -564,9 +576,13 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 
 bool qtDLGRegisters::checkCorrectnessValue(const QString &regVal)
 {
+	return true;
+
 	if (regVal.contains(QRegExp("[^0-9a-fA-F]+"))) {
 		return false;
 	}
+	
+	qDebug() << "checkCorrecnessValue: " << regVal;
 
 	BOOL needCheckFPU = true;
 	BOOL bIsWOW64 = false;
@@ -602,6 +618,55 @@ bool qtDLGRegisters::checkCorrectnessValue(const QString &regVal)
 			return false;
 		}
 	}
-	
+
 	return true;
+}
+
+Binary80* qtDLGRegisters::toExtendedPrecision(const QString &regVal) 
+{
+    Binary80 *binary = new Binary80();
+
+    long long pointIndx = regVal.lastIndexOf('.');
+    long long numPart = regVal.mid(0, pointIndx).toLongLong(); // get integral part of number
+    float fractionalPart = regVal.toFloat();
+    fractionalPart -= numPart;
+
+    binary->sign = ((numPart & 0x8000000000000000) >> 63);
+
+    numPart = abs(numPart);
+    if (binary->sign == 1) {
+        fractionalPart *= -1;
+    }
+
+    int numOrder = 0;
+    unsigned long long tmp = numPart;
+
+    while (1/*(tmp != 1) || (tmp != 0)*/) {
+        if (tmp == 1)
+            break;
+        if (tmp == 0)
+            break;
+
+        tmp = tmp >> 1;
+        numOrder++;
+    }
+
+    binary->exponent = numOrder + eExtendedPrecisionBias;
+    int numBits = /*(tmp == 1) ? (numOrder + 1) :*/ numOrder;
+    binary->mantissa = ((numPart & ~(~0 << numBits)) << (64 - numBits));
+
+    unsigned long tmp33 = 0;
+    int precision = 0;
+    while ((precision != (64 - numBits))) {
+        fractionalPart *= 2;
+        if (fractionalPart >= 1) {
+            binary->mantissa /*tmp33*/ |= 1 << (64 - numBits - 1 - precision);
+            fractionalPart -= 1;
+        } else {
+            binary->mantissa /*tmp33*/ |= 0 << (64 - numBits - 1 - precision);
+        }
+        precision++;
+    }
+
+    return binary;
 }

@@ -25,6 +25,22 @@
 
 #include <stdint.h>
 
+typedef struct _Binary80 {
+	unsigned int sign : 1;
+	unsigned int exponent : 15;
+	unsigned long long mantissa : 64;
+
+	_Binary80() {
+		sign = 0;
+		exponent = 0;
+		mantissa = 0;
+	}
+} Binary80;
+
+enum {
+	eExtendedPrecisionBias = 16383
+};
+
 class qtDLGRegisters : public QDockWidget, public Ui_qtDLGRegisters
 {
 	Q_OBJECT
@@ -48,6 +64,8 @@ private:
 	double readFloat80(const uint8_t buffer[10]);
 
 	bool checkCorrectnessValue(const QString &regVal);
+
+	Binary80* toExtendedPrecision(const QString &regVal);
 
 private:
 	typedef struct {
