@@ -27,6 +27,7 @@
 #include <cmath>
 #include <limits>
 
+#include <stdio.h>
 //#include <string.h>
 
 qtDLGRegisters::qtDLGRegisters(QWidget *parent)
@@ -62,21 +63,22 @@ qtDLGRegisters::qtDLGRegisters(QWidget *parent)
 	connect(tblRegView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(OnContextMenu(QPoint)));
 	connect(tblRegView,SIGNAL(itemDoubleClicked(QTableWidgetItem *)),this,SLOT(OnChangeRequest(QTableWidgetItem *)));
 
-
+/*
 	connect(tblFPU, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
 			this,	SLOT(OnChangeRequest(QTableWidgetItem *)));
 	connect(tblMMX, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
 			this,	SLOT(OnChangeRequest(QTableWidgetItem *)));
 	connect(tblSSE, SIGNAL(itemDoubleClicked(QTableWidgetItem *)),
 			this,	SLOT(OnChangeRequest(QTableWidgetItem *)));
-
+*/
+/*
 	connect(tblFPU,	SIGNAL(itemChanged(QTableWidgetItem *)),
 			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
 	connect(tblMMX,	SIGNAL(itemChanged(QTableWidgetItem *)),
 			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
 	connect(tblSSE,	SIGNAL(itemChanged(QTableWidgetItem *)),
 			this,	SLOT(slot_changeRegisterValue(QTableWidgetItem *)));
-
+*/
 }
 
 qtDLGRegisters::~qtDLGRegisters()
@@ -342,10 +344,17 @@ void qtDLGRegisters::LoadRegView(clsDebugger *coreDebugger)
 	if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE) == true) {
 		tabWidget->insertTab(2, mmxRegs, "MMX");
 
-		DWORD64* pMMX;
+		//DWORD64* pMMX;
 		for (int i = 0; i < 8; i++) {
-			pMMX = (DWORD64*)&coreDebugger->ProcessContext.FloatSave.RegisterArea[i * 10];
-			PrintValueInTable(tblMMX, QString("MMX%1").arg(i),QString("%1").arg(*pMMX, 16, 16, QChar('0')));
+			double value;
+	
+			memcpy(&value, &coreDebugger->ProcessContext.FloatSave.RegisterArea[i * 10], sizeof(double));
+			PrintValueInTable(tblMMX, QString("MMX%1").arg(i),QString("%1").arg(value));
+
+			//pMMX = (DWORD64*)&coreDebugger->ProcessContext.FloatSave.RegisterArea[i * 10];
+
+			//PrintValueInTable(tblMMX, QString("MMX%1").arg(i),QString("%1").arg(*pMMX, 16, 16, QChar('0')));
+			
 		}
 	}
 	else
@@ -403,7 +412,6 @@ void qtDLGRegisters::PrintValueInTable(QTableWidget *pTable, QString regName, QS
 	pTable->setItem(pTable->rowCount() - 1,1,new QTableWidgetItem(regValue));
 }
 
-// FIXME: maybe rewrite this function
 double qtDLGRegisters::readFloat80(const uint8_t buffer[10]) 
 {
     //80 bit floating point value according to IEEE-754:
@@ -543,16 +551,16 @@ void qtDLGRegisters::slot_changeRegisterValue(QTableWidgetItem *item)
 	}
 #else
 	// just for x32...	
-	if (sender() == tblFPU) {
-		/*
+	if (sender() == tblFPU) {		
 		Binary80 *binary = toExtendedPrecision(regVal);
-		
+		for(int i = 0; i < sizeof(Binary80); i++) {
+			printf("%02x", ((unsigned char *)binary)[i]);
+		}
 	//	double value = regVal.toDouble();
 		memcpy(	&qtDLGNanomite::GetInstance()->coreDebugger->ProcessContext.FloatSave.RegisterArea[item->row() * 10], 
 				binary, 
 				10);
-		delete binary;
-		*/
+		delete binary;		
 	}
 
 	if (sender() == tblMMX) {
