@@ -26,6 +26,21 @@ struct APIData
 	quint64 APIOffset;
 };
 
+struct SResourceDirectoryEntry;
+struct SResourceDirectory {
+	QList<SResourceDirectoryEntry> m_directoryEntries;
+	IMAGE_RESOURCE_DIRECTORY m_dir;
+};
+
+struct SResourceDirectoryEntry {	
+	SResourceDirectory m_sDir;
+	IMAGE_RESOURCE_DATA_ENTRY m_dataEntry;
+
+	IMAGE_RESOURCE_DIRECTORY_ENTRY m_directoryEntry;
+	
+	int m_level;
+};
+
 class clsPEFile
 {
 public:
@@ -45,6 +60,8 @@ public:
 	IMAGE_DOS_HEADER getDosHeader();
 	IMAGE_NT_HEADERS32 getNTHeader32();
 	IMAGE_NT_HEADERS64 getNTHeader64();
+
+	SResourceDirectory* getResourceDirectory();
 
 	bool is64Bit();
 
@@ -75,6 +92,7 @@ private:
 	QList<APIData> loadImports32();
 	QList<APIData> loadImports64();
 	QList<APIData> loadExports();
+	void loadResource();
 	
 	QList<IMAGE_SECTION_HEADER> loadSections();
 
@@ -85,6 +103,8 @@ private:
 	QList<DWORD64> loadTLSCallbackOffset32();
 
 	float loadEntropie(DWORD fileSize);
+
+	SResourceDirectory m_rscrDir;
 };
 
 #endif

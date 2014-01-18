@@ -232,6 +232,8 @@ bool clsPEFile::LoadFile(QString FileName, int PID, quint64 imageBase)
 		m_tlsOffset = loadTLSCallbackOffset32();
 	}
 
+	loadResource();
+
 	free(m_fileBuffer);
 	return true;
 }
@@ -547,4 +549,85 @@ float clsPEFile::loadEntropie(DWORD fileSize)
 float clsPEFile::getEntropie()
 {
 	return fileEntropie;
+}
+
+SResourceDirectory* clsPEFile::getResourceDirectory()
+{
+	return &m_rscrDir;
+}
+
+void clsPEFile::loadResource()
+{
+	DWORD resourceOffset = NULL;
+	DWORD resourceRVA = NULL;
+	DWORD64 imageBase = NULL;
+
+	if(m_is64Bit)
+	{
+		resourceRVA = m_INH64.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress;
+		resourceOffset = resourceRVA + (DWORD64)m_fileBuffer;
+		imageBase = m_INH64.OptionalHeader.ImageBase;
+	}
+	else
+	{
+		resourceRVA = m_INH32.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress;
+		resourceOffset = resourceRVA + (DWORD32)m_fileBuffer;
+		imageBase = m_INH32.OptionalHeader.ImageBase;
+	}
+
+	if(resourceOffset != NULL && resourceRVA != NULL)
+	{
+		PIMAGE_RESOURCE_DIRECTORY pResource = (PIMAGE_RESOURCE_DIRECTORY)(resourceOffset);
+		PIMAGE_RESOURCE_DIRECTORY pResource2, pResource3;
+		PIMAGE_RESOURCE_DIRECTORY_ENTRY pEntry, pEntry2, pEntry3;
+		PIMAGE_RESOURCE_DATA_ENTRY pResourceDataEntry;
+
+		WORD numOfId = pResource->NumberOfIdEntries;
+		WORD numOfNamed = pResource->NumberOfNamedEntries;
+
+		m_rscrDir.m_dir = *pResource;
+		
+		for (int i = 0; i < numOfId; i++) {
+			pEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(pResource + 1) + i;
+			pResource2 = (PIMAGE_RESOURCE_DIRECTORY)(resourceOffset + pEntry->OffsetToDirectory);
+
+			SResourceDirectoryEntry rscrDirEntry;
+			SResourceDirectory rscrDir;
+
+			rscrDir.m_dir = *pResource2;
+			rscrDirEntry.m_directoryEntry = *pEntry;
+			rscrDirEntry.m_level = 2;
+			
+			for (int j = 0; j < (pResource2->NumberOfNamedEntries + pResource2->NumberOfIdEntries); j++) {
+				pEntry2 = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(pResource2 + 1) + j;
+				pResource3 = (PIMAGE_RESOURCE_DIRECTORY)(resourceOffset + pEntry2->OffsetToDirectory);
+
+				SResourceDirectoryEntry rscrDirEntry2;
+				SResourceDirectory rscrDir2;
+
+				rscrDir2.m_dir = *pResource3;
+				rscrDirEntry2.m_directoryEntry = *pEntry2;	
+				rscrDirEntry2.m_level = 3;
+				
+				for (int k = 0; k < pResource3->NumberOfIdEntries; k++) {
+					pEntry3 = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(pResource3 + 1) + k;
+					pResourceDataEntry = (PIMAGE_RESOURCE_DATA_ENTRY)(resourceOffset + pEntry3->OffsetToDirectory);
+
+					SResourceDirectoryEntry rscrDirEntry3;
+
+					rscrDirEntry3.m_directoryEntry = *pEntry3;
+					rscrDirEntry3.m_dataEntry = *pResourceDataEntry;
+					rscrDirEntry3.m_level = 4;
+
+					rscrDir2.m_directoryEntries.append(rscrDirEntry3);
+				}
+
+				rscrDirEntry2.m_sDir = rscrDir2;
+				rscrDir.m_directoryEntries.append(rscrDirEntry2);
+			}
+
+			rscrDirEntry.m_sDir = rscrDir;
+			m_rscrDir.m_directoryEntries.append(rscrDirEntry);
+		}
+	}
 }
