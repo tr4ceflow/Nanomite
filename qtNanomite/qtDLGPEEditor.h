@@ -111,12 +111,18 @@ private:
 	* @return no
 	*/
 	void LoadPEView();
+
+	void InsertResources();
+
 	/**
 	* @brief Inits needed treePE sections.
 	* 
 	* @return no
 	*/
 	void InitList();
+
+private:
+	void InsertImageRsrcDirInfo(QTreeWidgetItem *topElement, QString ValueName, quint64 dwValue);
 
 private slots:
 	/**

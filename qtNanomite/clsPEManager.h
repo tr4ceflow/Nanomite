@@ -53,6 +53,8 @@ public:
 
 	QString getFilenameFromPID(int PID);
 
+	SResourceDirectory getResourceDirectory(QString FileName);
+
 	public slots:
 		void InsertPIDForFile(QString,int);
 		void CloseFile(QString,int);

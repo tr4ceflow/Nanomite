@@ -72,7 +72,7 @@ qtDLGPEEditor::~qtDLGPEEditor()
 
 void qtDLGPEEditor::InitList()
 {
-	treePE->header()->resizeSection(0,350);
+	treePE->header()->resizeSection(0,450);
 	treePE->header()->resizeSection(1,120);
 	treePE->header()->resizeSection(2,120);
 	treePE->header()->resizeSection(3,120);
@@ -87,7 +87,99 @@ void qtDLGPEEditor::LoadPEView()
 	InsertOptionalHeader();
 	InsertImports();
 	InsertExports();
-	InsertSections();
+	InsertResources();
+	InsertSections();	
+}
+
+void qtDLGPEEditor::InsertResources()
+{
+	SResourceDirectory rscrDir = m_pEManager->getResourceDirectory(m_currentFile);
+	SResourceDirectoryEntry rscrDirEntry, rscrDirEntry2, rscrDirEntry3, rscrDirEntry4;
+	SResourceDirectory rscrDir2, rscrDir3, rscrDir4;
+
+	QTreeWidgetItem *topElement, *childElement, *element, *element2, *elemnt3;
+
+	topElement = new QTreeWidgetItem;
+	topElement->setText(0, "Resource Directory");
+	treePE->addTopLevelItem(topElement);
+
+	InsertImageRsrcDirInfo(topElement, "Characteristics", rscrDir.m_dir.Characteristics);
+	InsertImageRsrcDirInfo(topElement, "Major version", rscrDir.m_dir.MajorVersion);
+	InsertImageRsrcDirInfo(topElement, "Minor version", rscrDir.m_dir.MinorVersion);
+	InsertImageRsrcDirInfo(topElement, "Number of id entries", rscrDir.m_dir.NumberOfIdEntries);
+	InsertImageRsrcDirInfo(topElement, "Number of named entries", rscrDir.m_dir.NumberOfNamedEntries);
+	InsertImageRsrcDirInfo(topElement, "Time date stamp", rscrDir.m_dir.TimeDateStamp);
+
+	for (int i = 0; i < rscrDir.m_directoryEntries.size(); i++) {
+		rscrDirEntry = rscrDir.m_directoryEntries.at(i);
+		element = new QTreeWidgetItem(topElement);
+		element->setText(0, QString("Resource Directory Entry %1, ID: %2")
+			.arg(i + 1)
+			.arg(rscrDirEntry.m_directoryEntry.Id));
+		
+		InsertImageRsrcDirInfo(element, "Name", rscrDirEntry.m_directoryEntry.Name);
+		InsertImageRsrcDirInfo(element, "OffsetToData", rscrDirEntry.m_directoryEntry.OffsetToData);
+
+		element2 = new QTreeWidgetItem(element);
+		element2->setText(0, QString("Resource Directory"));
+		
+		for (int j = 0; j < rscrDirEntry.m_sDir.m_directoryEntries.size(); j++) {
+			rscrDirEntry2 = rscrDirEntry.m_sDir.m_directoryEntries.at(j);
+			rscrDir2 = rscrDirEntry.m_sDir;
+
+			InsertImageRsrcDirInfo(element2, "Characteristics", rscrDir2.m_dir.Characteristics);
+			InsertImageRsrcDirInfo(element2, "Major version", rscrDir2.m_dir.MajorVersion);
+			InsertImageRsrcDirInfo(element2, "Minor version", rscrDir2.m_dir.MinorVersion);
+			InsertImageRsrcDirInfo(element2, "Number of id entries", rscrDir2.m_dir.NumberOfIdEntries);
+			InsertImageRsrcDirInfo(element2, "Number of named entries", rscrDir2.m_dir.NumberOfNamedEntries);
+			InsertImageRsrcDirInfo(element2, "Time date stamp", rscrDir2.m_dir.TimeDateStamp);
+			
+			element = new QTreeWidgetItem(element2);
+			element->setText(0, QString("Resource Directory Entry %1, ID: %2")
+				.arg(j + 1)
+				.arg(rscrDirEntry2.m_directoryEntry.Id));
+
+			InsertImageRsrcDirInfo(element, "Name", rscrDirEntry2.m_directoryEntry.Name);
+			InsertImageRsrcDirInfo(element, "OffsetToData", rscrDirEntry2.m_directoryEntry.OffsetToData);
+
+			element2 = new QTreeWidgetItem(element);
+			element2->setText(0, QString("Resource Directory"));
+			for (int k = 0; k < rscrDirEntry2.m_sDir.m_directoryEntries.size(); k++) {
+				rscrDirEntry3 = rscrDirEntry2.m_sDir.m_directoryEntries.at(k);
+				rscrDir3 = rscrDirEntry2.m_sDir;
+
+				InsertImageRsrcDirInfo(element2, "Characteristics", rscrDir3.m_dir.Characteristics);
+				InsertImageRsrcDirInfo(element2, "Major version", rscrDir3.m_dir.MajorVersion);
+				InsertImageRsrcDirInfo(element2, "Minor version", rscrDir3.m_dir.MinorVersion);
+				InsertImageRsrcDirInfo(element2, "Number of id entries", rscrDir3.m_dir.NumberOfIdEntries);
+				InsertImageRsrcDirInfo(element2, "Number of named entries", rscrDir3.m_dir.NumberOfNamedEntries);
+				InsertImageRsrcDirInfo(element2, "Time date stamp", rscrDir3.m_dir.TimeDateStamp);
+
+				element = new QTreeWidgetItem(element2);
+				element->setText(0, QString("Resource Directory Entry %1, ID: %2")
+					.arg(k + 1)
+					.arg(rscrDirEntry3.m_directoryEntry.Id));
+		
+				InsertImageRsrcDirInfo(element, "Name", rscrDirEntry3.m_directoryEntry.Name);
+				InsertImageRsrcDirInfo(element, "OffsetToData", rscrDirEntry3.m_directoryEntry.OffsetToData);
+
+				element2 = new QTreeWidgetItem(element);
+				element2->setText(0, QString("Resource Data Entry"));
+
+				InsertImageRsrcDirInfo(element2, "OffsetToData", rscrDirEntry3.m_dataEntry.OffsetToData);
+				InsertImageRsrcDirInfo(element2, "Size", rscrDirEntry3.m_dataEntry.Size);
+				InsertImageRsrcDirInfo(element2, "CodePage", rscrDirEntry3.m_dataEntry.CodePage);
+				InsertImageRsrcDirInfo(element2, "Reserved", rscrDirEntry3.m_dataEntry.Reserved);
+			}
+		}
+	}
+}
+
+void qtDLGPEEditor::InsertImageRsrcDirInfo(QTreeWidgetItem *topElement, QString ValueName, quint64 dwValue)
+{
+	QTreeWidgetItem *dataElement = new QTreeWidgetItem(topElement);
+	dataElement->setText(0, ValueName);
+	dataElement->setText(1, QString("%1").arg(dwValue, 8, 16, QChar('0')));
 }
 
 void qtDLGPEEditor::InsertImports()

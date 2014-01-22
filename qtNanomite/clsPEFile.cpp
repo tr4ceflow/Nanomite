@@ -617,6 +617,8 @@ void clsPEFile::loadResource()
 
 					rscrDirEntry3.m_directoryEntry = *pEntry3;
 					rscrDirEntry3.m_dataEntry = *pResourceDataEntry;
+					
+					//fixme: here is problem
 					rscrDirEntry3.m_level = 4;
 
 					rscrDir2.m_directoryEntries.append(rscrDirEntry3);
