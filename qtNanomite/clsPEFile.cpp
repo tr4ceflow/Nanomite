@@ -587,7 +587,7 @@ void clsPEFile::loadResource()
 
 		m_rscrDir.m_dir = *pResource;
 		
-		for (int i = 0; i < numOfId; i++) {
+		for (int i = 0; i < numOfId + numOfNamed; i++) {
 			pEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(pResource + 1) + i;
 			pResource2 = (PIMAGE_RESOURCE_DIRECTORY)(resourceOffset + pEntry->OffsetToDirectory);
 
@@ -609,7 +609,7 @@ void clsPEFile::loadResource()
 				rscrDirEntry2.m_directoryEntry = *pEntry2;	
 				rscrDirEntry2.m_level = 3;
 				
-				for (int k = 0; k < pResource3->NumberOfIdEntries; k++) {
+				for (int k = 0; k < pResource3->NumberOfIdEntries + pResource3->NumberOfNamedEntries; k++) {
 					pEntry3 = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(pResource3 + 1) + k;
 					pResourceDataEntry = (PIMAGE_RESOURCE_DATA_ENTRY)(resourceOffset + pEntry3->OffsetToDirectory);
 
