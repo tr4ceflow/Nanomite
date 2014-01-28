@@ -91,6 +91,7 @@ void qtDLGPEEditor::LoadPEView()
 	InsertSections();	
 }
 
+//FIXME: rewrite for recursive variant. it will be more beautiful
 void qtDLGPEEditor::InsertResources()
 {
 	SResourceDirectory rscrDir =	m_pEManager->getResourceDirectory(m_currentFile), 
@@ -122,13 +123,22 @@ void qtDLGPEEditor::InsertResources()
 	InsertImageRsrcDirInfo(topElement, "Number of named entries", rscrDir.m_dir.NumberOfNamedEntries);
 	InsertImageRsrcDirInfo(topElement, "Time date stamp", rscrDir.m_dir.TimeDateStamp);
 
+	QString tmpStr;
+
 	for (int i = 0; i < rscrDir.m_directoryEntries.size(); i++) {
 		rscrDirEntry = rscrDir.m_directoryEntries.at(i);
 		element = new QTreeWidgetItem(topElement);
+		
+		if (rscrDirEntry.m_resourceName.isEmpty() == false) {
+			tmpStr = rscrDirEntry.m_resourceName;
+		} else {
+			tmpStr = QString("%1").arg(rscrDirEntry.m_directoryEntry.Id);
+		}
+
 		element->setText(0, QString("Resource Directory Entry %1, ID: %2")
 			.arg(i + 1)
-			.arg(rscrDirEntry.m_directoryEntry.Id));
-		
+			.arg(tmpStr)); 
+
 		InsertImageRsrcDirInfo(element, "Name", rscrDirEntry.m_directoryEntry.Name);
 		InsertImageRsrcDirInfo(element, "OffsetToData", rscrDirEntry.m_directoryEntry.OffsetToData);
 
@@ -149,9 +159,16 @@ void qtDLGPEEditor::InsertResources()
 			}
 			
 			element3 = new QTreeWidgetItem(element2);
+
+			if (rscrDirEntry2.m_resourceName.isEmpty() == false) {
+				tmpStr = rscrDirEntry2.m_resourceName;
+			} else {
+				tmpStr = QString("%1").arg(rscrDirEntry2.m_directoryEntry.Id);
+			}
+
 			element3->setText(0, QString("Resource Directory Entry %1, ID: %2")
 				.arg(j + 1)
-				.arg(rscrDirEntry2.m_directoryEntry.Id));
+				.arg(tmpStr)); 
 
 			InsertImageRsrcDirInfo(element3, "Name", rscrDirEntry2.m_directoryEntry.Name);
 			InsertImageRsrcDirInfo(element3, "OffsetToData", rscrDirEntry2.m_directoryEntry.OffsetToData);
@@ -172,9 +189,17 @@ void qtDLGPEEditor::InsertResources()
 				}
 				
 				element5 = new QTreeWidgetItem(element4);
+
+				if (rscrDirEntry3.m_resourceName.isEmpty() == false) {
+					tmpStr = rscrDirEntry3.m_resourceName;
+				} else {
+					tmpStr = QString("%1").arg(rscrDirEntry3.m_directoryEntry.Id);
+				}
+
 				element5->setText(0, QString("Resource Directory Entry %1, ID: %2")
 					.arg(k + 1)
-					.arg(rscrDirEntry3.m_directoryEntry.Id));
+					.arg(tmpStr)); 
+
 				InsertImageRsrcDirInfo(element5, "Name", rscrDirEntry3.m_directoryEntry.Name);
 				InsertImageRsrcDirInfo(element5, "OffsetToData", rscrDirEntry3.m_directoryEntry.OffsetToData);
 				

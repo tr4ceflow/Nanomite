@@ -556,6 +556,7 @@ SResourceDirectory* clsPEFile::getResourceDirectory()
 	return &m_rscrDir;
 }
 
+//FIXME: rewrite for recursive variant. it will be more beautiful
 void clsPEFile::loadResource()
 {
 	DWORD resourceOffset = NULL;
@@ -598,6 +599,12 @@ void clsPEFile::loadResource()
 			rscrDirEntry.m_directoryEntry = *pEntry;
 			rscrDirEntry.m_level = 2;
 			
+			if (pEntry->NameIsString == 1) {
+				PIMAGE_RESOURCE_DIR_STRING_U dirString = 
+					(PIMAGE_RESOURCE_DIR_STRING_U)(resourceOffset + pEntry->NameOffset);
+				rscrDirEntry.m_resourceName = QString::fromWCharArray(dirString->NameString, dirString->Length);
+			}
+
 			for (int j = 0; j < (pResource2->NumberOfNamedEntries + pResource2->NumberOfIdEntries); j++) {
 				pEntry2 = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(pResource2 + 1) + j;
 				pResource3 = (PIMAGE_RESOURCE_DIRECTORY)(resourceOffset + pEntry2->OffsetToDirectory);
@@ -608,6 +615,12 @@ void clsPEFile::loadResource()
 				rscrDir2.m_dir = *pResource3;
 				rscrDirEntry2.m_directoryEntry = *pEntry2;	
 				rscrDirEntry2.m_level = 3;
+
+				if (pEntry2->NameIsString == 1) {
+					PIMAGE_RESOURCE_DIR_STRING_U dirString = 
+						(PIMAGE_RESOURCE_DIR_STRING_U)(resourceOffset + pEntry2->NameOffset);
+					rscrDirEntry2.m_resourceName = QString::fromWCharArray(dirString->NameString, dirString->Length);
+				}
 				
 				for (int k = 0; k < pResource3->NumberOfIdEntries + pResource3->NumberOfNamedEntries; k++) {
 					pEntry3 = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(pResource3 + 1) + k;
@@ -618,7 +631,12 @@ void clsPEFile::loadResource()
 					rscrDirEntry3.m_directoryEntry = *pEntry3;
 					rscrDirEntry3.m_dataEntry = *pResourceDataEntry;
 					
-					//fixme: here is problem
+					if (pEntry3->NameIsString == 1) {
+						PIMAGE_RESOURCE_DIR_STRING_U dirString = 
+							(PIMAGE_RESOURCE_DIR_STRING_U)(resourceOffset + pEntry3->NameOffset);
+						rscrDirEntry3.m_resourceName = QString::fromWCharArray(dirString->NameString, dirString->Length);
+					}
+
 					rscrDirEntry3.m_level = 4;
 
 					rscrDir2.m_directoryEntries.append(rscrDirEntry3);

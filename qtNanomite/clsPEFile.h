@@ -35,6 +35,7 @@ struct SResourceDirectory {
 struct SResourceDirectoryEntry {	
 	SResourceDirectory m_sDir;
 	IMAGE_RESOURCE_DATA_ENTRY m_dataEntry;
+	QString m_resourceName;
 
 	IMAGE_RESOURCE_DIRECTORY_ENTRY m_directoryEntry;
 	
