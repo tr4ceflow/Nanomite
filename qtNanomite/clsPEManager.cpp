@@ -299,3 +299,18 @@ IMAGE_TLS_DIRECTORY clsPEManager::getTLSDir(QString fileName)
 
 	return IMAGE_TLS_DIRECTORY();
 }
+
+QList<SRelocations> clsPEManager::getRelocations(QString fileName)
+{
+	fileName.replace('/','\\');
+
+	for(int i = 0; i < pThis->PEFiles.size(); i++)
+	{
+		if(pThis->PEFiles[i].FileName.compare(fileName) == 0 /* || PEFiles[i].PID == PID */)
+		{
+			return (pThis->PEFiles[i].PEFile->getRelocations());
+		}
+	}
+
+	return QList<SRelocations>();
+}

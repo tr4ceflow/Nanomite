@@ -90,6 +90,27 @@ void qtDLGPEEditor::LoadPEView()
 	InsertResources();
 	InsertSections();
 	InsertTLSDir();
+	//InsertRelocations();
+}
+
+void qtDLGPEEditor::InsertRelocations()
+{
+	QTreeWidgetItem *topElmnt, *childElmnt;
+
+	topElmnt = new QTreeWidgetItem;
+	topElmnt->setText(0, "Relocation directory");
+	treePE->addTopLevelItem(topElmnt);
+
+	QList<SRelocations> relocs = m_pEManager->getRelocations(m_currentFile);
+	for (int i = 0; i < relocs.size(); i++) {
+		InsertData(topElmnt, "RVA", relocs.at(i).m_rva);
+		InsertData(topElmnt, "Size Of Block", relocs.at(i).m_sizeOfBlock);
+		childElmnt = new QTreeWidgetItem(topElmnt);
+		for (int j = 0; j < relocs.at(i).m_items.size(); j++) {
+			InsertData(childElmnt, "Item", relocs.at(i).m_items.at(j).m_item, 4);
+			InsertData(childElmnt, "RVA", relocs.at(i).m_items.at(j).m_rva);
+		}
+	}
 }
 
 void qtDLGPEEditor::InsertTLSDir()

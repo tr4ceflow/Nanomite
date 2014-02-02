@@ -116,6 +116,8 @@ private:
 
 	void InsertTLSDir();	
 
+	void InsertRelocations();
+
 	/**
 	* @brief Inits needed treePE sections.
 	* 

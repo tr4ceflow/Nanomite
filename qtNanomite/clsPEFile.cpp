@@ -234,6 +234,7 @@ bool clsPEFile::LoadFile(QString FileName, int PID, quint64 imageBase)
 
 	loadResource();
 	loadTLSDir();
+	loadRelocations();
 
 	free(m_fileBuffer);
 	return true;
@@ -276,6 +277,11 @@ IMAGE_TLS_DIRECTORY clsPEFile::getTLSDir() {
 QList<IMAGE_SECTION_HEADER> clsPEFile::getSections()
 {
 	return fileSections;
+}
+
+QList<SRelocations> clsPEFile::getRelocations()
+{
+	return m_relocations;
 }
 
 QList<IMAGE_SECTION_HEADER> clsPEFile::loadSections()
@@ -675,5 +681,73 @@ void clsPEFile::loadTLSDir()
 
 	if(resourceOffset != NULL && resourceRVA != NULL) {
 		m_tlsDir = *(PIMAGE_TLS_DIRECTORY)(resourceOffset);
+	}
+}
+
+void clsPEFile::loadRelocations()
+{
+	DWORD relocOffset = NULL;
+	DWORD relocRVA = NULL;
+	DWORD i;
+	DWORD typeX, offsetX;
+
+	if(m_is64Bit) {
+		relocRVA = m_INH64.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress;
+		relocOffset = relocRVA + (DWORD64)m_fileBuffer;
+	} else {
+		relocRVA = m_INH32.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress;
+		relocOffset = relocRVA + (DWORD32)m_fileBuffer;
+	}
+
+	if(relocOffset != NULL && relocRVA != NULL) {
+		PIMAGE_BASE_RELOCATION pReloc;
+		
+		while(1) {
+			pReloc = (PIMAGE_BASE_RELOCATION)(relocOffset);
+
+			if (pReloc->SizeOfBlock == 0) 
+				break;
+
+			SRelocations relocs;
+			relocs.m_rva = pReloc->VirtualAddress;
+			relocs.m_sizeOfBlock = pReloc->SizeOfBlock;
+
+			for (i = 8; i < pReloc->SizeOfBlock; i += 2) {
+				SRelocationItem relocItem;
+				typeX = (*(WORD *)(relocOffset + i)) >> 12;
+				offsetX = (*(WORD *)(relocOffset + i)) & ((1 << 12) - 1);
+
+				switch (typeX) {
+				case 0:
+					// IMAGE_REL_BASED_ABSOLUTE
+					relocItem.m_item = 0;
+					relocItem.m_rva = relocs.m_rva;
+					relocItem.type = "ABSOLUTE";
+					break;
+				case 3:
+					// IMAGE_REL_BASED_HIGHLOW
+					relocItem.m_item = (*(WORD *)(relocOffset + i));
+					relocItem.m_rva = relocs.m_rva + offsetX;
+					relocItem.type = "HIGHLOW";
+					break;
+				default:
+					relocItem.m_item = 0;
+					relocItem.m_rva = 0;
+					relocItem.type = QString("not support type %1").arg(typeX);
+					break;
+				}
+
+				relocs.m_items.append(relocItem);
+			}
+
+			if ((relocs.m_rva = 0x29b000) && (relocs.m_sizeOfBlock == 0x10)) {
+				int j;
+				j = 10;
+			}
+
+			relocOffset += pReloc->SizeOfBlock;
+
+			m_relocations.append(relocs);
+		}
 	}
 }

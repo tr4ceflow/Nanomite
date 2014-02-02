@@ -42,6 +42,19 @@ struct SResourceDirectoryEntry {
 	int m_level;
 };
 
+struct SRelocationItem {
+	WORD m_item;
+	DWORD m_rva;
+	QString type;
+};
+
+struct SRelocations {
+	DWORD m_rva;
+	DWORD m_sizeOfBlock;
+	//DWORD m_itemsAmount;
+	QList<SRelocationItem> m_items;
+};
+
 class clsPEFile
 {
 public:
@@ -62,6 +75,7 @@ public:
 	IMAGE_NT_HEADERS32 getNTHeader32();
 	IMAGE_NT_HEADERS64 getNTHeader64();
 	IMAGE_TLS_DIRECTORY getTLSDir();
+	QList<SRelocations> getRelocations();
 
 	SResourceDirectory* getResourceDirectory();
 
@@ -84,6 +98,7 @@ private:
 	IMAGE_NT_HEADERS64 m_INH64;
 	IMAGE_NT_HEADERS32 m_INH32;
 	IMAGE_TLS_DIRECTORY m_tlsDir;
+	QList<SRelocations> m_relocations;
 
 	QList<APIData> fileImports;
 	QList<APIData> fileExports;
@@ -97,6 +112,7 @@ private:
 	QList<APIData> loadExports();
 	void loadResource();
 	void loadTLSDir();
+	void loadRelocations();
 	
 	QList<IMAGE_SECTION_HEADER> loadSections();
 
