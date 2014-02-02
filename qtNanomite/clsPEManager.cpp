@@ -284,3 +284,18 @@ SResourceDirectory clsPEManager::getResourceDirectory(QString FileName)
 
 	return SResourceDirectory();
 }
+
+IMAGE_TLS_DIRECTORY clsPEManager::getTLSDir(QString fileName) 
+{
+	fileName.replace('/','\\');
+
+	for(int i = 0; i < pThis->PEFiles.size(); i++)
+	{
+		if(pThis->PEFiles[i].FileName.compare(fileName) == 0 /* || PEFiles[i].PID == PID */)
+		{
+			return (pThis->PEFiles[i].PEFile->getTLSDir());
+		}
+	}
+
+	return IMAGE_TLS_DIRECTORY();
+}

@@ -114,6 +114,8 @@ private:
 
 	void InsertResources();
 
+	void InsertTLSDir();	
+
 	/**
 	* @brief Inits needed treePE sections.
 	* 
@@ -122,7 +124,7 @@ private:
 	void InitList();
 
 private:
-	void InsertImageRsrcDirInfo(QTreeWidgetItem *topElement, QString ValueName, quint64 dwValue);
+	void InsertData(QTreeWidgetItem *topElement,QString ValueName,quint64 dwValue, quint64 fieldW = 8, quint64 base = 16);
 
 private slots:
 	/**

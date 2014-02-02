@@ -233,6 +233,7 @@ bool clsPEFile::LoadFile(QString FileName, int PID, quint64 imageBase)
 	}
 
 	loadResource();
+	loadTLSDir();
 
 	free(m_fileBuffer);
 	return true;
@@ -266,6 +267,10 @@ IMAGE_NT_HEADERS32 clsPEFile::getNTHeader32()
 IMAGE_NT_HEADERS64 clsPEFile::getNTHeader64()
 {
 	return m_INH64;
+}
+
+IMAGE_TLS_DIRECTORY clsPEFile::getTLSDir() {
+	return m_tlsDir;
 }
 
 QList<IMAGE_SECTION_HEADER> clsPEFile::getSections()
@@ -649,5 +654,26 @@ void clsPEFile::loadResource()
 			rscrDirEntry.m_sDir = rscrDir;
 			m_rscrDir.m_directoryEntries.append(rscrDirEntry);
 		}
+	}
+}
+
+void clsPEFile::loadTLSDir()
+{
+	DWORD resourceOffset = NULL;
+	DWORD resourceRVA = NULL;
+	DWORD64 imageBase = NULL;
+
+	if(m_is64Bit) {
+		resourceRVA = m_INH64.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress;
+		resourceOffset = resourceRVA + (DWORD64)m_fileBuffer;
+		imageBase = m_INH64.OptionalHeader.ImageBase;
+	} else {
+		resourceRVA = m_INH32.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress;
+		resourceOffset = resourceRVA + (DWORD32)m_fileBuffer;
+		imageBase = m_INH32.OptionalHeader.ImageBase;
+	}
+
+	if(resourceOffset != NULL && resourceRVA != NULL) {
+		m_tlsDir = *(PIMAGE_TLS_DIRECTORY)(resourceOffset);
 	}
 }

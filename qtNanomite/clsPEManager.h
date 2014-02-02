@@ -54,6 +54,7 @@ public:
 	QString getFilenameFromPID(int PID);
 
 	SResourceDirectory getResourceDirectory(QString FileName);
+	IMAGE_TLS_DIRECTORY getTLSDir(QString fileName);
 
 	public slots:
 		void InsertPIDForFile(QString,int);

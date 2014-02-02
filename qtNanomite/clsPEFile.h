@@ -61,6 +61,7 @@ public:
 	IMAGE_DOS_HEADER getDosHeader();
 	IMAGE_NT_HEADERS32 getNTHeader32();
 	IMAGE_NT_HEADERS64 getNTHeader64();
+	IMAGE_TLS_DIRECTORY getTLSDir();
 
 	SResourceDirectory* getResourceDirectory();
 
@@ -82,6 +83,7 @@ private:
 	IMAGE_FILE_HEADER m_IFH;
 	IMAGE_NT_HEADERS64 m_INH64;
 	IMAGE_NT_HEADERS32 m_INH32;
+	IMAGE_TLS_DIRECTORY m_tlsDir;
 
 	QList<APIData> fileImports;
 	QList<APIData> fileExports;
@@ -94,6 +96,7 @@ private:
 	QList<APIData> loadImports64();
 	QList<APIData> loadExports();
 	void loadResource();
+	void loadTLSDir();
 	
 	QList<IMAGE_SECTION_HEADER> loadSections();
 
