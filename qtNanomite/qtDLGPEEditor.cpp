@@ -93,6 +93,7 @@ void qtDLGPEEditor::LoadPEView()
 	//InsertRelocations();
 }
 
+//FIXME: too slow...
 void qtDLGPEEditor::InsertRelocations()
 {
 	QTreeWidgetItem *topElmnt, *childElmnt;

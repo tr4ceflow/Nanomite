@@ -23,7 +23,8 @@
 
 clsPEFile::clsPEFile(QString FileName,bool *bLoaded, int PID, quint64 imageBase) :
 	m_fileName(FileName),
-	m_fileBuffer(NULL)
+	m_fileBuffer(NULL),
+	m_boundImportDescp(0)
 {
 	if(PID == -1 && imageBase == 0)
 		*bLoaded = m_isLoaded = CheckFile(m_fileName);
@@ -33,7 +34,15 @@ clsPEFile::clsPEFile(QString FileName,bool *bLoaded, int PID, quint64 imageBase)
 
 clsPEFile::~clsPEFile()
 {
+	if (m_boundImportDescp) {
+		if (m_boundImportDescp->m_boundForwarderRef) {
+			delete m_boundImportDescp->m_boundForwarderRef;
+			m_boundImportDescp->m_boundForwarderRef = 0;
+		}
 
+		delete m_boundImportDescp;
+		m_boundImportDescp = 0;
+	}
 }
 
 bool clsPEFile::CheckFile(QString FileName)
@@ -235,6 +244,20 @@ bool clsPEFile::LoadFile(QString FileName, int PID, quint64 imageBase)
 	loadResource();
 	loadTLSDir();
 	loadRelocations();
+
+	if (m_boundImportDescp) {
+		if (m_boundImportDescp->m_boundForwarderRef) {
+			delete m_boundImportDescp->m_boundForwarderRef;
+			m_boundImportDescp->m_boundForwarderRef = 0;
+		}
+
+		delete m_boundImportDescp;
+		m_boundImportDescp = 0;
+	}
+
+	m_boundImportDescp = new SBoundImportDescriptor;
+	m_boundImportDescp->m_boundForwarderRef = new QList<PIMAGE_BOUND_FORWARDER_REF>();
+	loadBoundImportDescprtion();
 
 	free(m_fileBuffer);
 	return true;
@@ -749,5 +772,33 @@ void clsPEFile::loadRelocations()
 
 			m_relocations.append(relocs);
 		}
+	}
+}
+
+void clsPEFile::loadBoundImportDescprtion()
+{
+	DWORD boundImportOffset = NULL;
+	DWORD boundImportRVA = NULL;
+	DWORD i;
+	DWORD typeX, offsetX;
+
+	if(m_is64Bit) {
+		boundImportRVA = m_INH64.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress;
+		boundImportOffset = boundImportRVA + (DWORD64)m_fileBuffer;
+	} else {
+		boundImportRVA = m_INH32.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress;
+		boundImportOffset = boundImportRVA + (DWORD32)m_fileBuffer;
+	}
+
+	PIMAGE_BOUND_IMPORT_DESCRIPTOR pBoundImportDescpr = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(boundImportOffset);
+	m_boundImportDescp->m_boundImportDescriptor = pBoundImportDescpr;
+	boundImportOffset += sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR);
+
+	PIMAGE_BOUND_FORWARDER_REF pBoundForwarderRef;
+
+	for (int i = 0; i < pBoundImportDescpr->NumberOfModuleForwarderRefs; i++) {
+		pBoundForwarderRef = (PIMAGE_BOUND_FORWARDER_REF)(boundImportOffset);
+		m_boundImportDescp->m_boundForwarderRef->append(pBoundForwarderRef);
+		boundImportOffset += sizeof(IMAGE_BOUND_FORWARDER_REF);
 	}
 }

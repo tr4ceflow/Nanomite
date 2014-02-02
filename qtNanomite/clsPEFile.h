@@ -55,6 +55,14 @@ struct SRelocations {
 	QList<SRelocationItem> m_items;
 };
 
+struct SBoundImportDescriptor {
+	SBoundImportDescriptor() {
+		m_boundForwarderRef = 0;
+	}
+	PIMAGE_BOUND_IMPORT_DESCRIPTOR m_boundImportDescriptor;
+	QList<PIMAGE_BOUND_FORWARDER_REF> *m_boundForwarderRef;
+};
+
 class clsPEFile
 {
 public:
@@ -99,7 +107,8 @@ private:
 	IMAGE_NT_HEADERS32 m_INH32;
 	IMAGE_TLS_DIRECTORY m_tlsDir;
 	QList<SRelocations> m_relocations;
-
+	SBoundImportDescriptor *m_boundImportDescp;
+	
 	QList<APIData> fileImports;
 	QList<APIData> fileExports;
 
@@ -113,6 +122,7 @@ private:
 	void loadResource();
 	void loadTLSDir();
 	void loadRelocations();
+	void loadBoundImportDescprtion();
 	
 	QList<IMAGE_SECTION_HEADER> loadSections();
 
