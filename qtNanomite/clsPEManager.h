@@ -56,6 +56,7 @@ public:
 	SResourceDirectory getResourceDirectory(QString FileName);
 	IMAGE_TLS_DIRECTORY getTLSDir(QString fileName);
 	QList<SRelocations> getRelocations(QString fileName);
+	SBoundImportDescriptor* getBoudImportDescp(QString fileName);
 
 	public slots:
 		void InsertPIDForFile(QString,int);

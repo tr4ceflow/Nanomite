@@ -58,7 +58,25 @@ struct SRelocations {
 struct SBoundImportDescriptor {
 	SBoundImportDescriptor() {
 		m_boundForwarderRef = 0;
+		m_boundImportDescriptor = 0;
 	}
+
+	~SBoundImportDescriptor() {
+		if (m_boundImportDescriptor) {
+			delete m_boundImportDescriptor;
+			m_boundImportDescriptor = 0;
+		}
+
+		if (m_boundForwarderRef) {
+			for (int i = 0; i < m_boundForwarderRef->size(); i++) {
+				delete m_boundForwarderRef->at(i);
+			}
+
+			delete m_boundForwarderRef;
+			m_boundForwarderRef = 0;
+		}
+	}
+
 	PIMAGE_BOUND_IMPORT_DESCRIPTOR m_boundImportDescriptor;
 	QList<PIMAGE_BOUND_FORWARDER_REF> *m_boundForwarderRef;
 };
@@ -86,6 +104,7 @@ public:
 	QList<SRelocations> getRelocations();
 
 	SResourceDirectory* getResourceDirectory();
+	SBoundImportDescriptor *getBoundImportDescp();
 
 	bool is64Bit();
 

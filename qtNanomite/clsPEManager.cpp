@@ -314,3 +314,18 @@ QList<SRelocations> clsPEManager::getRelocations(QString fileName)
 
 	return QList<SRelocations>();
 }
+
+SBoundImportDescriptor* clsPEManager::getBoudImportDescp(QString fileName)
+{
+	fileName.replace('/','\\');
+
+	for(int i = 0; i < pThis->PEFiles.size(); i++)
+	{
+		if(pThis->PEFiles[i].FileName.compare(fileName) == 0 /* || PEFiles[i].PID == PID */)
+		{
+			return (pThis->PEFiles[i].PEFile->getBoundImportDescp());
+		}
+	}
+
+	return NULL;
+}

@@ -118,6 +118,8 @@ private:
 
 	void InsertRelocations();
 
+	void InsertBoundImportDescp();
+
 	/**
 	* @brief Inits needed treePE sections.
 	* 

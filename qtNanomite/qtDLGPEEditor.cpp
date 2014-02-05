@@ -91,8 +91,37 @@ void qtDLGPEEditor::LoadPEView()
 	InsertSections();
 	InsertTLSDir();
 	//InsertRelocations();
+	InsertBoundImportDescp();
 }
 
+void qtDLGPEEditor::InsertBoundImportDescp()
+{
+	SBoundImportDescriptor *boundImport = m_pEManager->getBoudImportDescp(m_currentFile);
+
+	if (boundImport) {
+		QTreeWidgetItem *topElmt, *childElmt;
+
+		topElmt = new QTreeWidgetItem;
+		topElmt->setText(0, "Bound Import Description");
+		treePE->addTopLevelItem(topElmt);
+
+		InsertData(topElmt, "Time Date Stamp", boundImport->m_boundImportDescriptor->TimeDateStamp);
+		InsertData(topElmt, "Offset Module Name", boundImport->m_boundImportDescriptor->OffsetModuleName);
+		InsertData(topElmt, "Number Of Module Forwarder Refs", boundImport->m_boundImportDescriptor->NumberOfModuleForwarderRefs);
+	
+		PIMAGE_BOUND_FORWARDER_REF forwarderRef;
+		for (int i = 0; i < boundImport->m_boundForwarderRef->size(); i++) {
+			forwarderRef = boundImport->m_boundForwarderRef->at(i);
+
+			childElmt = new QTreeWidgetItem(topElmt);
+			childElmt->setText(0, QString("Bound Forwarder Ref[%1]").arg(i));
+			
+			InsertData(childElmt, "Time Date Stamp", forwarderRef->TimeDateStamp);
+			InsertData(childElmt, "Offset Module Name", forwarderRef->OffsetModuleName);
+			InsertData(childElmt, "Reserved", forwarderRef->Reserved);
+		}
+	}
+}
 //FIXME: too slow...
 void qtDLGPEEditor::InsertRelocations()
 {

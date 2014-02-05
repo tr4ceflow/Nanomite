@@ -34,15 +34,7 @@ clsPEFile::clsPEFile(QString FileName,bool *bLoaded, int PID, quint64 imageBase)
 
 clsPEFile::~clsPEFile()
 {
-	if (m_boundImportDescp) {
-		if (m_boundImportDescp->m_boundForwarderRef) {
-			delete m_boundImportDescp->m_boundForwarderRef;
-			m_boundImportDescp->m_boundForwarderRef = 0;
-		}
-
-		delete m_boundImportDescp;
-		m_boundImportDescp = 0;
-	}
+	delete m_boundImportDescp;
 }
 
 bool clsPEFile::CheckFile(QString FileName)
@@ -305,6 +297,11 @@ QList<IMAGE_SECTION_HEADER> clsPEFile::getSections()
 QList<SRelocations> clsPEFile::getRelocations()
 {
 	return m_relocations;
+}
+
+SBoundImportDescriptor* clsPEFile::getBoundImportDescp()
+{
+	return m_boundImportDescp;
 }
 
 QList<IMAGE_SECTION_HEADER> clsPEFile::loadSections()
@@ -790,14 +787,16 @@ void clsPEFile::loadBoundImportDescprtion()
 		boundImportOffset = boundImportRVA + (DWORD32)m_fileBuffer;
 	}
 
-	PIMAGE_BOUND_IMPORT_DESCRIPTOR pBoundImportDescpr = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(boundImportOffset);
+	PIMAGE_BOUND_IMPORT_DESCRIPTOR pBoundImportDescpr = new IMAGE_BOUND_IMPORT_DESCRIPTOR;
+	memcpy(pBoundImportDescpr, (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(boundImportOffset), sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR));
 	m_boundImportDescp->m_boundImportDescriptor = pBoundImportDescpr;
 	boundImportOffset += sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR);
 
 	PIMAGE_BOUND_FORWARDER_REF pBoundForwarderRef;
 
 	for (int i = 0; i < pBoundImportDescpr->NumberOfModuleForwarderRefs; i++) {
-		pBoundForwarderRef = (PIMAGE_BOUND_FORWARDER_REF)(boundImportOffset);
+		pBoundForwarderRef = new IMAGE_BOUND_FORWARDER_REF;
+		memcpy(pBoundForwarderRef, (PIMAGE_BOUND_FORWARDER_REF)(boundImportOffset), sizeof(IMAGE_BOUND_FORWARDER_REF));
 		m_boundImportDescp->m_boundForwarderRef->append(pBoundForwarderRef);
 		boundImportOffset += sizeof(IMAGE_BOUND_FORWARDER_REF);
 	}
