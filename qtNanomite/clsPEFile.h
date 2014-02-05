@@ -49,16 +49,30 @@ struct SRelocationItem {
 };
 
 struct SRelocations {
+	SRelocations() {
+		m_items = new QList<SRelocationItem *>();
+	}
+
+	~SRelocations() {
+		if (m_items) {
+			for (int i = 0; i < m_items->size(); i++) {
+				delete m_items->at(i);
+			}
+
+			delete m_items;
+			m_items = 0;
+		}
+	}
+
 	DWORD m_rva;
 	DWORD m_sizeOfBlock;
-	//DWORD m_itemsAmount;
-	QList<SRelocationItem> m_items;
+	QList<SRelocationItem *> *m_items;
 };
 
 struct SBoundImportDescriptor {
 	SBoundImportDescriptor() {
-		m_boundForwarderRef = 0;
-		m_boundImportDescriptor = 0;
+		m_boundImportDescriptor = new IMAGE_BOUND_IMPORT_DESCRIPTOR;
+		m_boundForwarderRef = new QList<PIMAGE_BOUND_FORWARDER_REF>();
 	}
 
 	~SBoundImportDescriptor() {
@@ -101,7 +115,7 @@ public:
 	IMAGE_NT_HEADERS32 getNTHeader32();
 	IMAGE_NT_HEADERS64 getNTHeader64();
 	IMAGE_TLS_DIRECTORY getTLSDir();
-	QList<SRelocations> getRelocations();
+	QList<SRelocations *>* getRelocations();
 
 	SResourceDirectory* getResourceDirectory();
 	SBoundImportDescriptor *getBoundImportDescp();
@@ -125,7 +139,7 @@ private:
 	IMAGE_NT_HEADERS64 m_INH64;
 	IMAGE_NT_HEADERS32 m_INH32;
 	IMAGE_TLS_DIRECTORY m_tlsDir;
-	QList<SRelocations> m_relocations;
+	QList<SRelocations*> *m_relocations;
 	SBoundImportDescriptor *m_boundImportDescp;
 	
 	QList<APIData> fileImports;

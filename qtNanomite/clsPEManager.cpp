@@ -300,7 +300,7 @@ IMAGE_TLS_DIRECTORY clsPEManager::getTLSDir(QString fileName)
 	return IMAGE_TLS_DIRECTORY();
 }
 
-QList<SRelocations> clsPEManager::getRelocations(QString fileName)
+QList<SRelocations*>* clsPEManager::getRelocations(QString fileName)
 {
 	fileName.replace('/','\\');
 
@@ -312,7 +312,7 @@ QList<SRelocations> clsPEManager::getRelocations(QString fileName)
 		}
 	}
 
-	return QList<SRelocations>();
+	return NULL;
 }
 
 SBoundImportDescriptor* clsPEManager::getBoudImportDescp(QString fileName)

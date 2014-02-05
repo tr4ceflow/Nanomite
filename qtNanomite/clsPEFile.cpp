@@ -24,7 +24,8 @@
 clsPEFile::clsPEFile(QString FileName,bool *bLoaded, int PID, quint64 imageBase) :
 	m_fileName(FileName),
 	m_fileBuffer(NULL),
-	m_boundImportDescp(0)
+	m_boundImportDescp(0),
+	m_relocations(0)
 {
 	if(PID == -1 && imageBase == 0)
 		*bLoaded = m_isLoaded = CheckFile(m_fileName);
@@ -35,6 +36,16 @@ clsPEFile::clsPEFile(QString FileName,bool *bLoaded, int PID, quint64 imageBase)
 clsPEFile::~clsPEFile()
 {
 	delete m_boundImportDescp;
+	m_boundImportDescp = 0;
+
+	if (m_relocations) {
+		for (int i = 0; i < m_relocations->size(); i++) {
+			delete m_relocations->at(i);
+		}
+
+		delete m_relocations;
+		m_relocations = 0;
+	}
 }
 
 bool clsPEFile::CheckFile(QString FileName)
@@ -235,21 +246,24 @@ bool clsPEFile::LoadFile(QString FileName, int PID, quint64 imageBase)
 
 	loadResource();
 	loadTLSDir();
-	loadRelocations();
 
 	if (m_boundImportDescp) {
-		if (m_boundImportDescp->m_boundForwarderRef) {
-			delete m_boundImportDescp->m_boundForwarderRef;
-			m_boundImportDescp->m_boundForwarderRef = 0;
-		}
-
 		delete m_boundImportDescp;
 		m_boundImportDescp = 0;
 	}
-
 	m_boundImportDescp = new SBoundImportDescriptor;
-	m_boundImportDescp->m_boundForwarderRef = new QList<PIMAGE_BOUND_FORWARDER_REF>();
 	loadBoundImportDescprtion();
+
+	if (m_relocations) {
+		for (int i = 0; i < m_relocations->size(); i++) {
+			delete m_relocations->at(i);
+		}
+
+		delete m_relocations;
+		m_relocations = 0;
+	}
+	m_relocations = new QList<SRelocations *>();
+	loadRelocations();
 
 	free(m_fileBuffer);
 	return true;
@@ -294,7 +308,7 @@ QList<IMAGE_SECTION_HEADER> clsPEFile::getSections()
 	return fileSections;
 }
 
-QList<SRelocations> clsPEFile::getRelocations()
+QList<SRelocations*>* clsPEFile::getRelocations()
 {
 	return m_relocations;
 }
@@ -728,46 +742,41 @@ void clsPEFile::loadRelocations()
 			if (pReloc->SizeOfBlock == 0) 
 				break;
 
-			SRelocations relocs;
-			relocs.m_rva = pReloc->VirtualAddress;
-			relocs.m_sizeOfBlock = pReloc->SizeOfBlock;
+			SRelocations *relocs = new SRelocations;
+			relocs->m_rva = pReloc->VirtualAddress;
+			relocs->m_sizeOfBlock = pReloc->SizeOfBlock;
 
 			for (i = 8; i < pReloc->SizeOfBlock; i += 2) {
-				SRelocationItem relocItem;
+				SRelocationItem *relocItem = new SRelocationItem;
 				typeX = (*(WORD *)(relocOffset + i)) >> 12;
 				offsetX = (*(WORD *)(relocOffset + i)) & ((1 << 12) - 1);
 
 				switch (typeX) {
 				case 0:
 					// IMAGE_REL_BASED_ABSOLUTE
-					relocItem.m_item = 0;
-					relocItem.m_rva = relocs.m_rva;
-					relocItem.type = "ABSOLUTE";
+					relocItem->m_item = 0;
+					relocItem->m_rva = relocs->m_rva;
+					relocItem->type = "ABSOLUTE";
 					break;
 				case 3:
 					// IMAGE_REL_BASED_HIGHLOW
-					relocItem.m_item = (*(WORD *)(relocOffset + i));
-					relocItem.m_rva = relocs.m_rva + offsetX;
-					relocItem.type = "HIGHLOW";
+					relocItem->m_item = (*(WORD *)(relocOffset + i));
+					relocItem->m_rva = relocs->m_rva + offsetX;
+					relocItem->type = "HIGHLOW";
 					break;
 				default:
-					relocItem.m_item = 0;
-					relocItem.m_rva = 0;
-					relocItem.type = QString("not support type %1").arg(typeX);
+					relocItem->m_item = 0;
+					relocItem->m_rva = 0;
+					relocItem->type = QString("not support type %1").arg(typeX);
 					break;
 				}
 
-				relocs.m_items.append(relocItem);
-			}
-
-			if ((relocs.m_rva = 0x29b000) && (relocs.m_sizeOfBlock == 0x10)) {
-				int j;
-				j = 10;
+				relocs->m_items->append(relocItem);
 			}
 
 			relocOffset += pReloc->SizeOfBlock;
 
-			m_relocations.append(relocs);
+			m_relocations->append(relocs);
 		}
 	}
 }
@@ -787,16 +796,20 @@ void clsPEFile::loadBoundImportDescprtion()
 		boundImportOffset = boundImportRVA + (DWORD32)m_fileBuffer;
 	}
 
-	PIMAGE_BOUND_IMPORT_DESCRIPTOR pBoundImportDescpr = new IMAGE_BOUND_IMPORT_DESCRIPTOR;
-	memcpy(pBoundImportDescpr, (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(boundImportOffset), sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR));
-	m_boundImportDescp->m_boundImportDescriptor = pBoundImportDescpr;
+	memcpy(	m_boundImportDescp->m_boundImportDescriptor, 
+			(PIMAGE_BOUND_IMPORT_DESCRIPTOR)(boundImportOffset), 
+			sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR));
 	boundImportOffset += sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR);
 
 	PIMAGE_BOUND_FORWARDER_REF pBoundForwarderRef;
+	WORD n = m_boundImportDescp->m_boundImportDescriptor->NumberOfModuleForwarderRefs;
 
-	for (int i = 0; i < pBoundImportDescpr->NumberOfModuleForwarderRefs; i++) {
+	for (int i = 0; i < n; i++) {
 		pBoundForwarderRef = new IMAGE_BOUND_FORWARDER_REF;
-		memcpy(pBoundForwarderRef, (PIMAGE_BOUND_FORWARDER_REF)(boundImportOffset), sizeof(IMAGE_BOUND_FORWARDER_REF));
+		memcpy(	pBoundForwarderRef, 
+				(PIMAGE_BOUND_FORWARDER_REF)(boundImportOffset), 
+				sizeof(IMAGE_BOUND_FORWARDER_REF));
+
 		m_boundImportDescp->m_boundForwarderRef->append(pBoundForwarderRef);
 		boundImportOffset += sizeof(IMAGE_BOUND_FORWARDER_REF);
 	}

@@ -122,6 +122,7 @@ void qtDLGPEEditor::InsertBoundImportDescp()
 		}
 	}
 }
+
 //FIXME: too slow...
 void qtDLGPEEditor::InsertRelocations()
 {
@@ -131,15 +132,22 @@ void qtDLGPEEditor::InsertRelocations()
 	topElmnt->setText(0, "Relocation directory");
 	treePE->addTopLevelItem(topElmnt);
 
-	QList<SRelocations> relocs = m_pEManager->getRelocations(m_currentFile);
-	for (int i = 0; i < relocs.size(); i++) {
-		InsertData(topElmnt, "RVA", relocs.at(i).m_rva);
-		InsertData(topElmnt, "Size Of Block", relocs.at(i).m_sizeOfBlock);
-		childElmnt = new QTreeWidgetItem(topElmnt);
-		for (int j = 0; j < relocs.at(i).m_items.size(); j++) {
-			InsertData(childElmnt, "Item", relocs.at(i).m_items.at(j).m_item, 4);
-			InsertData(childElmnt, "RVA", relocs.at(i).m_items.at(j).m_rva);
-		}
+	QList<SRelocations *> *relocsList = m_pEManager->getRelocations(m_currentFile);
+	SRelocations *reloc;
+	SRelocationItem *relocItem;
+	for (int i = 0; i < relocsList->size(); i++) {
+		reloc = relocsList->at(i);
+		InsertData(topElmnt, "RVA", reloc->m_rva);
+		InsertData(topElmnt, "Size Of Block", reloc->m_sizeOfBlock);
+		//childElmnt = new QTreeWidgetItem(topElmnt);
+		//for (int j = 0; j < reloc->m_items->size(); j++) {
+		//	relocItem = reloc->m_items->at(j);
+		//	InsertData(childElmnt, "Item", relocItem->m_item, 4);
+		//	InsertData(childElmnt, "RVA", relocItem->m_rva);
+		//	
+		//	//ADD METHOD FOR ADDING STRINGS!!!
+		//	//InsertData(childElmnt, "Type", relocItem->type);
+		//}
 	}
 }
 
