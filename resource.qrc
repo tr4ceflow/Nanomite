@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/logos">
+        <file>logo.png</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>computer.png</file>
+        <file>folder-open-document.png</file>
+        <file>application-detail.png</file>
+        <file>application-block.png</file>
+        <file>application-export.png</file>
+        <file>application-import.png</file>
+    </qresource>
+</RCC>

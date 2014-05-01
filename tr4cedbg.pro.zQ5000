@@ -1,0 +1,113 @@
+#-------------------------------------------------
+#
+# Project created by QtCreator 2014-04-25T14:19:15
+#
+#-------------------------------------------------
+
+QT       += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = tr4cedbg
+TEMPLATE = app
+
+
+SOURCES += main.cpp\
+        mainwindow.cpp \
+    Views/RegisterView.cpp \
+    Views/DisassemblerView.cpp \
+    cls/clsstringhelper.cpp \
+    cls/clsstylesettings.cpp \
+    cls/clsDisassembler.cpp \
+    clsDebugger/clsDebugger.cpp \
+    clsDebugger/clsDebuggerBreakpoints.cpp \
+    clsDebugger/clsDebuggerCallbacks.cpp \
+    clsDebugger/clsDebuggerPublicAPI.cpp \
+    cls/clsAPIImport.cpp \
+    cls/clsDBManager.cpp \
+    cls/clsDisassembler.cpp \
+    cls/clsHelperClass.cpp \
+    cls/clsMemManager.cpp \
+    cls/clsDisassembler.cpp \
+    cls/clsDisassembler.cpp \
+    cls/clsMemPool.cpp \
+    cls/clsAppSettings.cpp \
+    cls/clsCrashHandler.cpp \
+    cls/clsDBInterface.cpp \
+    cls/clsDisassembler.cpp \
+    cls/clsFunctionsViewWorker.cpp \
+    cls/clsHexViewWorker.cpp \
+    cls/clsMemDump.cpp \
+    cls/clsPEFile.cpp \
+    cls/clsPEManager.cpp \
+    cls/clsStringViewWorker.cpp \
+    cls/clsSymbolAndSyntax.cpp \
+    cls/clsDisassembler.cpp \
+    db_sqlite/sqlite3.c \
+    cls/clsDisassembler.cpp \
+    mainwindow_menu.cpp \
+    mainwindow_slots.cpp \
+    Models/clsDisassembler.cpp
+
+HEADERS  += NativeHeaders.h \
+mainwindow.h \
+    Meta.h \
+    Views/RegisterView.h \
+    Views/DisassemblerView.h \
+    BeaEngine/basic_types.h \
+    BeaEngine/BeaEngine.h \
+    BeaEngine/export.h \
+    BeaEngine/macros.h \
+    cls/clsstringhelper.h \
+    cls/clsstylesettings.h \
+    cls/clsDisassembler.h \
+    clsDebugger/clsDebugger.h \
+    cls/clsAPIImport.h \
+    cls/clsDBManager.h \
+    cls/clsDisassembler.h \
+    cls/clsHelperClass.h \
+    cls/clsMemManager.h \
+    cls/clsDisassembler.h \
+    cls/clsDisassembler.h \
+    cls/clsMemPool.h \
+    cls/clsAppSettings.h \
+    cls/clsCrashHandler.h \
+    cls/clsDBInterface.h \
+    cls/clsDisassembler.h \
+    cls/clsFunctionsViewWorker.h \
+    cls/clsHexViewWorker.h \
+    cls/clsMemDump.h \
+    cls/clsPEFile.h \
+    cls/clsPEManager.h \
+    cls/clsStringViewWorker.h \
+    cls/clsSymbolAndSyntax.h \
+    cls/clsDisassembler.h \
+    db_sqlite/sqlite3.h \
+    db_sqlite/sqlite3ext.h \
+    cls/clsDisassembler.h \
+    Models/clsDisassembler.h
+
+FORMS    += mainwindow.ui
+
+
+
+RESOURCES += \
+    resource.qrc
+
+
+LIBS += -L"$$PWD/BeaEngine/" -lBeaEngine
+
+
+INCLUDEPATH += BeaEngine
+DEPENDPATH += BeaEngine
+
+
+LIBS += -L"$$PWD/clsDebugger/" -ldbghelp
+
+
+INCLUDEPATH += clsDebugger
+DEPENDPATH += clsDebugger
+
+
+
+
