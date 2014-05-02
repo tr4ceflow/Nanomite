@@ -9,7 +9,7 @@ void MainWindow::onNewTargetLoaded(){
     m_ProgramSegmentationView->InsertSections(m_Debugger->GetTarget());
     m_ImportsView->InsertImports(m_Debugger->GetTarget());
 
-    m_DisassemblerView->setPESectionData(m_PeManager->getSections(m_Debugger->GetTarget()));
+    m_DynamicDisassemblyView->setPESectionData(m_PeManager->getSections(m_Debugger->GetTarget()));
     qDebug() << "onNewTargetLoaded";
    ;
 }
@@ -50,7 +50,7 @@ void MainWindow::onSlotDebuggerBreak()
         // Update Disassembler
         if(!m_DisassemblerModel->InsertNewDisassembly(m_Debugger->GetCurrentProcessHandle(),dwEIP))
         {
-            m_DisassemblerView->displayDisassembly(dwEIP,&m_DisassemblerModel->SectionDisAs);
+            m_DynamicDisassemblyView->displayDisassembly(dwEIP,&m_DisassemblerModel->SectionDisAs);
         }
 
     }
@@ -60,12 +60,12 @@ void MainWindow::onSlotDebuggerBreak()
 
 
 void MainWindow::onDisplayDisassembly(quint64 dwEIP, QMap<quint64,DISASM> *Data){
-    m_DisassemblerView->displayDisassembly(dwEIP,Data);
+    m_DynamicDisassemblyView->displayDisassembly(dwEIP,Data);
 }
 
 
 void MainWindow::onMainTabChange(int Tab){
     if(Tab==0){
-        m_DisassemblerView->repaint();
+        m_DynamicDisassemblyView->repaint();
     }
 }

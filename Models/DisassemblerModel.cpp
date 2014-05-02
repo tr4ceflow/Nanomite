@@ -47,6 +47,74 @@ DisassemblerModel::~DisassemblerModel()
 
 }
 
+/**
+ * @brief DisassemblerModel::fullDisassemble disassemble given memory (linear)
+ * @param DataPtr
+ * @param DataSize
+ * @param InstructionOffset
+ * @param BaseAddress
+ * @param VAOffset
+ */
+void DisassemblerModel::fullDisassemble(byte_t *DataPtr, quint64 DataSize, quint64 InstructionOffset, address_t BaseAddress, address_t VAOffset)
+{
+
+    /*
+     * DataPtr  points to the memory of bytes
+     * DataSize hold the size of the pointed data
+     * InstructionOffset helps to not start in the first byte of the DataPtr
+     * BaseAddress is usually 0x401000
+     * VAOffset is usually    0x000000
+     *
+     *
+     * this function should perform a static analyse of the given memory range
+     */
+
+    int len;
+    DISASM BeaEngineStruct;
+    // Reset Disasm Structure
+    memset(&BeaEngineStruct, 0, sizeof(DISASM));
+
+#ifdef _AMD64_
+    BeaEngineStruct.Archi = 64;
+#else
+    BeaEngineStruct.Archi = 0;
+#endif
+
+    BeaEngineStruct.EIP = (UIntPtr)((quint64)DataPtr + (address_t)InstructionOffset);
+    BeaEngineStruct.VirtualAddr = BaseAddress + VAOffset;
+
+    /*qDebug() << "full disasm starts at " << QString("%1").arg(BeaEngineStruct.VirtualAddr,8,16,QChar('0'));
+    qDebug() << "full disasm ends   at " << QString("%1").arg(BeaEngineStruct.VirtualAddr+DataSize,8,16,QChar('0'));
+    qDebug() << "data size             " << DataSize;
+    qDebug() << "minstr offset         " << InstructionOffset;
+    qDebug() << BeaEngineStruct.VirtualAddr;
+    qDebug() << BaseAddress + VAOffset+DataSize;*/
+
+    while(BeaEngineStruct.VirtualAddr <  BaseAddress + VAOffset+DataSize){
+
+        BeaEngineStruct.SecurityBlock = (UIntPtr)((quint64)DataSize - InstructionOffset+BaseAddress);
+        len = Disasm(&BeaEngineStruct);
+        if (len == OUT_OF_BLOCK) {
+            qDebug() << "not allowed to read more memory ";
+
+            break;
+        }
+        else if (len == UNKNOWN_OPCODE) {
+            qDebug() << "unknown opcode";
+
+            break;
+        }
+        else {
+            InstructionOffset += len;
+            BeaEngineStruct.EIP += len;
+            BeaEngineStruct.VirtualAddr += len;
+
+            MainWindow::instance()->m_DisassemblerDbModel->addInstruction(BeaEngineStruct);
+
+        }
+    }
+}
+
 bool DisassemblerModel::IsNewInsertNeeded()
 {
     int NumberOfInstructionBeforeEIP = 10;

@@ -28,6 +28,8 @@ private:
      QString m_TargetFilename;
      QString m_DatabaseFilename;
 
+     QMap<address_t,DISASM> m_StaticDisassembly;
+
      QMap<address_t,QString> m_Labels;       // maps <target, name>
      QList<address_t> m_Functions;
      QMap<address_t,address_t> m_JumpTable;   // maps <start, target>
@@ -67,6 +69,7 @@ public:
 
     bool isJumpTarget(address_t addr);
     void analyzeInstruction(DISASM Instruction);
+    void addInstruction(DISASM Instruction);
 };
 
 #endif // DISASSEMBLERDBMODEL_H

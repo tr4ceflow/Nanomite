@@ -42,13 +42,15 @@ SOURCES += main.cpp\
     Models/DisassemblerModel.cpp \
     Models/DisassemblerDbModel.cpp \
     Views/ProgramSegmentationView.cpp \
-    Views/DisassemblerView.cpp \
     Views/JumpView.cpp \
     cls/clsDBInterface.cpp \
     cls/clsDBManager.cpp \
     Helper/ArrowHelper.cpp \
     Views/ImportsView.cpp \
-    Views/FunctionView.cpp
+    Views/FunctionView.cpp \
+    Views/DynamicDisassemblyView.cpp \
+    Views/StaticDisassemblyView.cpp \
+    Models/BinaryFileModel.cpp
 
 HEADERS  += NativeHeaders.h \
 mainwindow.h \
@@ -79,7 +81,6 @@ mainwindow.h \
     Models/DisassemblerModel.h \
     Models/DisassemblerDbModel.h \
     Views/ProgramSegmentationView.h \
-    Views/DisassemblerView.h \
     Views/JumpView.h \
     Global.h \
     cls/clsDBInterface.h \
@@ -88,7 +89,10 @@ mainwindow.h \
     Models/disassemblerdbmodel.h \
     Models/disassemblerdbmodel.h \
     Views/ImportsView.h \
-    Views/FunctionView.h
+    Views/FunctionView.h \
+    Views/DynamicDisassemblyView.h \
+    Views/StaticDisassemblyView.h \
+    Models/BinaryFileModel.h
 
 FORMS    += mainwindow.ui \
     ProgramSegmentation.ui

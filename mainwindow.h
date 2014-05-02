@@ -10,9 +10,10 @@
 
 #include "Models/DisassemblerModel.h"
 #include "Models/DisassemblerDbModel.h"
+#include "Models/BinaryFileModel.h"
 
 #include "Views/RegisterView.h"
-#include "Views/DisassemblerView.h"
+#include "Views/DynamicDisassemblyView.h"
 #include "Views/ProgramSegmentationView.h"
 #include "Views/ImportsView.h"
 #include "Views/JumpView.h"
@@ -31,12 +32,17 @@ public:
     ~MainWindow();
 
     static MainWindow* instance();
+    QString m_CurrentFile;
 
     //components
     clsDebugger *m_Debugger;
     DisassemblerModel *m_DisassemblerModel;
     DisassemblerDbModel *m_DisassemblerDbModel;
     clsPEManager *m_PeManager;
+    BinaryFileModel *m_BinaryFileModel;
+
+
+
 
 protected:
     void createViews();
@@ -63,7 +69,7 @@ private:
     // views
     FunctionView *m_FunctionView;
     RegisterView *m_RegisterView;
-    DisassemblerView *m_DisassemblerView;
+    DynamicDisassemblyView *m_DynamicDisassemblyView;
     ProgramSegmentationView *m_ProgramSegmentationView;
     ImportsView* m_ImportsView;
     JumpView *m_JumpView;
@@ -73,6 +79,9 @@ private:
 
 public slots:
      void execOpenAction();
+     void execStartDebuggingAction();
+
+
      void onSlotDebuggerBreak();
      void onDisplayDisassembly(quint64 eip,QMap<quint64,DISASM> *Data);
      void onNewTargetLoaded();

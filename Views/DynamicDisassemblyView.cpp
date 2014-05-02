@@ -2,7 +2,7 @@
   * This represents the disassembler view and will show the instructions, ...
   */
 
-#include "DisassemblerView.h"
+#include "DynamicDisassemblyView.h"
 #include <QAbstractScrollArea>
 #include <QColor>
 #include <QPainter>
@@ -29,7 +29,7 @@
  * @param disasmdb     Model that represents extra information (user comments, label names, ...)
  * @param parent
  */
-DisassemblerView::DisassemblerView( QWidget *parent) :  QAbstractScrollArea(parent)
+DynamicDisassemblyView::DynamicDisassemblyView( QWidget *parent) :  QAbstractScrollArea(parent)
 {
     // calculate maximum of visible lines using the default font
     m_VisibleLines = this->height() / m_Style.m_FontHeight;
@@ -62,35 +62,35 @@ DisassemblerView::DisassemblerView( QWidget *parent) :  QAbstractScrollArea(pare
 
 }
 
-void DisassemblerView::resizeEvent(QResizeEvent *event)
+void DynamicDisassemblyView::resizeEvent(QResizeEvent *event)
 {
     // TODO
 }
 
 /**
- * @brief DisassemblerView::xCoordinate
+ * @brief DynamicDisassemblyView::xCoordinate
  * @param CharInColumn
  * @return x coordinate
  *
  * calculates the coordinate from the character position
  */
-const int DisassemblerView::xCoordinate(const int CharInColumn){
+const int DynamicDisassemblyView::xCoordinate(const int CharInColumn){
     return m_Style.m_FontWidth*CharInColumn;
 }
 
 /**
- * @brief DisassemblerView::yCoordinate
+ * @brief DynamicDisassemblyView::yCoordinate
  * @param Line line number offset of visible lines
  * @return y coordinate
  *
  * calculates the coordinate from the character position
  */
-const int DisassemblerView::yCoordinate(const int Line){
+const int DynamicDisassemblyView::yCoordinate(const int Line){
     return m_Style.m_FontHeight*(Line+1);
 }
 
 /**
- * @brief DisassemblerView::displayArgument
+ * @brief DynamicDisassemblyView::displayArgument
  * @param Line            line in view
  * @param Col             starting character position
  * @param Instruction     BeaEngine Instruction
@@ -99,7 +99,7 @@ const int DisassemblerView::yCoordinate(const int Line){
  *
  * will display the argument from the given instruction
  */
-int DisassemblerView::displayArgument(const int Line, const int Col, const DISASM* Instruction, const ARGTYPE *Argument){
+int DynamicDisassemblyView::displayArgument(const int Line, const int Col, const DISASM* Instruction, const ARGTYPE *Argument){
     // length to compute the starting position of the next argument
     int ArgumentTextLength = 0;
 
@@ -215,7 +215,7 @@ int DisassemblerView::displayArgument(const int Line, const int Col, const DISAS
 
 }
 
-void DisassemblerView::mouseReleaseEvent(QMouseEvent *e)
+void DynamicDisassemblyView::mouseReleaseEvent(QMouseEvent *e)
 {
     const int y = e->pos().y();
     const int clickline = y/m_Style.m_FontHeight;
@@ -227,12 +227,12 @@ void DisassemblerView::mouseReleaseEvent(QMouseEvent *e)
 }
 
 /**
- * @brief DisassemblerView::displayBaseInstruction
+ * @brief DynamicDisassemblyView::displayBaseInstruction
  * @param Line      current line in view
  * @param Col       current char pos in line
  * @param Data      disasm struct for current line
  */
-void DisassemblerView::displayBaseInstruction(const int Line, const int Col, const DISASM *Data){
+void DynamicDisassemblyView::displayBaseInstruction(const int Line, const int Col, const DISASM *Data){
     // line number to y coordinate
     const int y = m_Style.m_FontHeight*(Line+1);
     // character pos to x coordinate
@@ -245,11 +245,11 @@ void DisassemblerView::displayBaseInstruction(const int Line, const int Col, con
 }
 
 /**
- * @brief DisassemblerView::displayLine
+ * @brief DynamicDisassemblyView::displayLine
  * @param Line      current line in view
  * @param Data      disasm struct for current line
  */
-void DisassemblerView::displayLine(const int Line, const DISASM *Data){
+void DynamicDisassemblyView::displayLine(const int Line, const DISASM *Data){
     int y = m_Style.m_FontHeight*(Line+1);
     int x;
 
@@ -327,7 +327,7 @@ void DisassemblerView::displayLine(const int Line, const DISASM *Data){
 
 }
 
-void DisassemblerView::displayDisassembly(quint64 dwEIP,QMap<quint64,DISASM>* Data)
+void DynamicDisassemblyView::displayDisassembly(quint64 dwEIP,QMap<quint64,DISASM>* Data)
 {
 
     m_CurrentEIP = dwEIP;
@@ -339,17 +339,17 @@ void DisassemblerView::displayDisassembly(quint64 dwEIP,QMap<quint64,DISASM>* Da
 
 }
 
-void DisassemblerView::setPESectionData(QList<PESectionData> Sections)
+void DynamicDisassemblyView::setPESectionData(QList<PESectionData> Sections)
 {
     m_Sections = Sections;
 
 }
-void DisassemblerView::repaint() {
+void DynamicDisassemblyView::repaint() {
     viewport()->repaint();
 
 }
 
-void DisassemblerView::paintEvent(QPaintEvent *)
+void DynamicDisassemblyView::paintEvent(QPaintEvent *)
 {
 
     painter = new QPainter(viewport());

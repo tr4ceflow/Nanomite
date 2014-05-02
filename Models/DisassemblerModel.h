@@ -32,7 +32,7 @@
 #define BEA_USE_STDCALL
 #include "../BeaEngine/BeaEngine.h"
 
-
+typedef unsigned char byte_t;
 
 class DisassemblerModel : public QThread
 {
@@ -46,6 +46,11 @@ public:
     QMap<quint64,DISASM> SectionDisAs;
     DisassemblerModel();
     ~DisassemblerModel();
+
+
+    void fullDisassemble(byte_t* DataPtr, quint64 DataSize, quint64 InstructionOffset, address_t BaseAddress,
+                         address_t origInstRVA);
+
 
     bool InsertNewDisassembly(HANDLE hProc,quint64 dwEIP,bool bClear = false);
     void performFullDisassembly(HANDLE hProc, clsDebugger *_coreDebugger, clsPEManager *PEM);

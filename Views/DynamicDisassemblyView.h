@@ -1,5 +1,5 @@
-#ifndef DisassemblerView_H
-#define DisassemblerView_H
+#ifndef DynamicDisassemblyView_H
+#define DynamicDisassemblyView_H
 
 #include <QAbstractScrollArea>
 #include <QPainter>
@@ -10,11 +10,11 @@
 #include "../Models/DisassemblerModel.h"
 #include "../Models/DisassemblerDbModel.h"
 
-class DisassemblerView : public QAbstractScrollArea
+class DynamicDisassemblyView : public QAbstractScrollArea
 {
     Q_OBJECT
 public:
-    explicit DisassemblerView(QWidget *parent = 0);
+    explicit DynamicDisassemblyView(QWidget *parent = 0);
 
     virtual void paintEvent(QPaintEvent *event);
 
@@ -63,4 +63,4 @@ protected:
     virtual void mouseReleaseEvent ( QMouseEvent * e );
 };
 
-#endif // DisassemblerView_H
+#endif // DynamicDisassemblyView_H

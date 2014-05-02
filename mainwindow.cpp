@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 #include "Meta.h"
 #include "Views/RegisterView.h"
-#include "Views/DisassemblerView.h"
+#include "Views/DynamicDisassemblyView.h"
 #include "Views/ProgramSegmentationView.h"
 #include "Views/JumpView.h"
 #include "Views/ImportsView.h"
@@ -60,12 +60,12 @@ void MainWindow::createConnections(){
     connect(m_Debugger,SIGNAL(OnDebuggerBreak()),this,SLOT(onSlotDebuggerBreak()),Qt::QueuedConnection);
     connect(m_DisassemblerModel,SIGNAL(DisAsFinished(quint64,QMap<quint64,DISASM>*)),this,SLOT(onDisplayDisassembly(quint64,QMap<quint64,DISASM>*)),Qt::QueuedConnection);
 
-    connect(this,SIGNAL(On_execOpenAction()),this,SLOT(onNewTargetLoaded()));
+    //connect(this,SIGNAL(On_execOpenAction()),this,SLOT(onNewTargetLoaded()));
 
     connect(MainTabWidget,SIGNAL(currentChanged(int)),this,SLOT(onMainTabChange(int)));
 
     connect(
-        m_DisassemblerView,
+        m_DynamicDisassemblyView,
         SIGNAL(
             OnDisassemblyIsReady(
                 quint64 ,
@@ -85,7 +85,7 @@ void MainWindow::createConnections(){
                 QMap<quint64,DISASM>::const_iterator
              )
         ));
-  //  connect(m_DisassemblerView,SIGNAL(OnDisassemblyIsReady(quint64 )),m_JumpView,SLOT(displayDisassembly(quint64  )));
+  //  connect(m_DynamicDisassemblyView,SIGNAL(OnDisassemblyIsReady(quint64 )),m_JumpView,SLOT(displayDisassembly(quint64  )));
 
 }
 
@@ -94,6 +94,7 @@ void MainWindow::createComponents(){
     m_DisassemblerDbModel = new DisassemblerDbModel;
     m_DisassemblerModel = new DisassemblerModel;
     m_PeManager = new clsPEManager;
+    m_BinaryFileModel = new BinaryFileModel;
 
     //actionDebug_Trace_Stop->setDisabled(true);
 }
@@ -120,7 +121,7 @@ void MainWindow::createViews(){
     RegisterViewDock->setWidget(m_RegisterView);
     addDockWidget(Qt::RightDockWidgetArea, RegisterViewDock);
 
-    m_DisassemblerView = new DisassemblerView(m_DisassemblerDbModel);
+    m_DynamicDisassemblyView = new DynamicDisassemblyView(m_DisassemblerDbModel);
     m_ProgramSegmentationView = new ProgramSegmentationView(m_PeManager,this);
     m_JumpView = new JumpView();
     m_ImportsView = new ImportsView(m_PeManager,this);
@@ -128,7 +129,7 @@ void MainWindow::createViews(){
     QSplitter *splitter = new QSplitter();
 
     splitter->addWidget(m_JumpView);
-    splitter->addWidget(m_DisassemblerView);
+    splitter->addWidget(m_DynamicDisassemblyView);
 
     MainTabWidget = new QTabWidget();
 

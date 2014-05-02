@@ -6,7 +6,7 @@
 #include <QFileInfo>
 #include <QSqlQuery>
 #include <QMap>
-
+#include <QString>
 #include "../BeaEngine/BeaEngine.h"
 
 DisassemblerDbModel::DisassemblerDbModel(QWidget * parent) : QWidget(parent)
@@ -16,7 +16,8 @@ DisassemblerDbModel::DisassemblerDbModel(QWidget * parent) : QWidget(parent)
 
 void DisassemblerDbModel::openNewFile(QString Filename)
 {
-
+    m_StaticDisassembly.clear();
+    m_TargetFilename = Filename;
 
 }
 
@@ -33,6 +34,11 @@ QString DisassemblerDbModel::comment(address_t addr)
         return it.value();
     else
         return "";
+}
+
+void DisassemblerDbModel::addInstruction(DISASM Instruction){
+    m_StaticDisassembly.insert(Instruction.VirtualAddr,Instruction);
+    analyzeInstruction(Instruction);
 }
 
 void DisassemblerDbModel::analyzeInstruction(DISASM Instruction){
